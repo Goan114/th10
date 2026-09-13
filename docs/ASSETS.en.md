@@ -8,13 +8,15 @@ The project's source-code license does not cover original *Touhou 10* data, Simp
 
 Users must prepare runtime data from a copy they lawfully possess and may use under applicable law and the original rights terms. Maintainers do not provide, locate, or relicense these files through the source repository.
 
-A complete local runtime directory needs:
+A complete local runtime directory uses:
 
 - `site/data/th10.dat`: Japanese game data;
 - `site/data/th10c.dat`: optional Simplified Chinese game data;
-- `site/data/thbgm/0000.bin` through `1540.bin`: original PCM music split into 262,144-byte chunks.
+- `site/data/thbgm/0000.bin` through `1540.bin`: optional original PCM music split into 262,144-byte chunks; without it, the runtime can play silently.
 
-`site/manifest.json` and `release.json` record exact hashes, total music length, and chunk size. `scripts/verify.mjs` checks this content. A source-only checkout without local assets cannot pass full-distribution verification or run as a complete playable package.
+The GitHub Pages build lets lawful owners import `th10.dat` or `th10c.dat` and optional `thbgm.dat` directly into their browser. These files remain in that browser's IndexedDB and are never uploaded by the site. Browser storage is origin-specific and may be cleared by the browser, so it is not a permanent backup.
+
+`site/manifest.json` and `release.json` record exact hashes, total music length, and chunk size. `scripts/verify.mjs` checks the complete local distribution. A source-only checkout without imported or local assets cannot pass full-distribution verification or run the game.
 
 ## Public source repository versus complete local package
 
@@ -29,4 +31,3 @@ A complete local runtime directory needs:
 The current working directory is a complete local package with assets already prepared. `.gitignore` affects only future Git tracking and does not delete local files. Lawful owners may still use `scripts/package.py` to create their own local complete archive.
 
 Do not upload a complete local archive, `site/data`, or original replay files to a public release, object store, or CDN unless the uploader actually holds the necessary redistribution rights.
-

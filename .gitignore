@@ -5,6 +5,7 @@ source/artifacts/
 source/tools/
 artifacts/
 dist/
+_site/
 __pycache__/
 *.pyc
 *.zip

@@ -2,7 +2,7 @@
 
 [English](REPLAY-VALIDATION.md) | [简体中文](REPLAY-VALIDATION.zh-CN.md)
 
-This document is purely a consistency check, not a reconstruction procedure that compares each implementation step with the original game. It therefore uses a deliberately simple shortcut: if a no-miss replay produces a death, the implementation goes straight back for repair. None did.
+This document is purely a consistency check, not a reconstruction procedure that compares each implementation step with the original game. It therefore uses a deliberately simple shortcut: if a no-miss replay produces a death, the implementation has clearly desynchronized and should go back for repair. None did.
 
 ## Six-stage Lunatic run
 
@@ -33,4 +33,3 @@ This group deliberately covers long zero-death runs in which resources, bombs, a
 | K・G | Marisa C | 2,191,458,180 | **0** | Final score matches |
 | K・G | Reimu B | 2,171,052,580 | **0** | Final score matches |
 | AMAMIHRK | Reimu B | 2,154,730,490 | **0** | Final score matches |
-

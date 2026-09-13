@@ -35,6 +35,8 @@
     }
   },
   "runtime": [
+    "runtime/asset-import.mjs",
+    "runtime/asset-store.mjs",
     "runtime/assets.mjs",
     "runtime/audio-bridge.mjs",
     "runtime/audio-mixer.mjs",

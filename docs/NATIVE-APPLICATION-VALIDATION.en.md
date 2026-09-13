@@ -53,4 +53,4 @@ Exact current values are machine-readable in `release.json` and `source/build-re
 
 ## Limits
 
-The evidence supports precise behavior within its stated observations and inputs. It does not exhaust every shot type, difficulty, replay, and input combination; it does not prove zero differences under every browser scheduling condition; and it does not guarantee rendering, audio, or frame rate on every phone and GPU. The project-authored class and field names are not claimed to be the original author's symbols.
+The evidence supports behavior matching as accurately as demonstrated within its stated observations and inputs. It does not exhaust every shot type, difficulty, replay, and input combination; it does not prove zero differences under every browser scheduling condition; and it does not guarantee rendering, audio, or frame rate on every phone and GPU. The project-authored class and field names are not claimed to be the original author's symbols.

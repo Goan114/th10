@@ -4,9 +4,10 @@ export async function fetchGzip(url){const bytes=await fetchBytes(url);if(bytes[
 // Cache original PCM bytes before the emulated synchronous ReadFile needs them.
 // Track starts/loop points remain resident; the moving window is a bounded LRU.
 export class PagedMusic {
-  constructor(info,{fetcher=(...args)=>fetch(...args),capacity=64,ahead=12}={}){
+  constructor(info,{fetcher=(...args)=>fetch(...args),source=null,silent=false,capacity=64,ahead=12}={}){
     this.length=info.size;this.chunked=!!info.chunked;this.blockSize=info.blockSize??262144;
-    this.fetcher=fetcher;this.capacity=Math.max(1,capacity);this.ahead=Math.min(ahead,Math.max(0,this.capacity-2));
+    if(source&&source.size!==this.length)throw new Error(`thbgm.dat 长度不正确：应为 ${this.length} 字节`);
+    this.fetcher=fetcher;this.source=source;this.silent=!!silent;this.silentBlock=this.silent?new Uint8Array(this.blockSize):null;this.capacity=Math.max(1,capacity);this.ahead=Math.min(ahead,Math.max(0,this.capacity-2));
     this.blocks=new Map();this.inflight=new Map();this.pinned=new Set();this.required=new Set();this.pending=null;this.prefetched=-1;
   }
   trim(){
@@ -23,10 +24,10 @@ export class PagedMusic {
     const pending=Promise.resolve().then(async()=>{
       try{
         const start=index*this.blockSize,end=Math.min(start+this.blockSize,this.length)-1;
-        const url=this.chunked?`/data/thbgm/${String(index).padStart(4,'0')}.bin`:'/data/thbgm.dat';
-        const response=await this.fetcher(url,this.chunked?{}:{headers:{Range:`bytes=${start}-${end}`}});
-        if(!response.ok||(!this.chunked&&response.status!==206))throw new Error('音乐数据读取失败：'+url);
-        const data=new Uint8Array(await response.arrayBuffer());
+        const url=this.chunked?new URL(`../data/thbgm/${String(index).padStart(4,'0')}.bin`,import.meta.url):new URL('../data/thbgm.dat',import.meta.url);let data;
+        if(this.silent)data=this.silentBlock.subarray(0,end-start+1);
+        else if(this.source)data=new Uint8Array(await this.source.slice(start,end+1).arrayBuffer());
+        else{const response=await this.fetcher(url,this.chunked?{}:{headers:{Range:`bytes=${start}-${end}`}});if(!response.ok||(!this.chunked&&response.status!==206))throw new Error('音乐数据读取失败：'+url);data=new Uint8Array(await response.arrayBuffer());}
         if(data.length!==end-start+1)throw new Error('音乐数据长度不完整：'+url);
         this.blocks.set(index,data);this.trim();return data;
       }finally{this.inflight.delete(index);}

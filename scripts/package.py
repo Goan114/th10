@@ -6,7 +6,7 @@ import hashlib
 import json
 
 root = Path(__file__).resolve().parent.parent
-excluded = {'.git', '.codex', '.agents', 'node_modules', '__pycache__', 'artifacts', 'dist'}
+excluded = {'.git', '.codex', '.agents', 'node_modules', '__pycache__', 'artifacts', 'dist', '_site'}
 def included(path):
     rel = path.relative_to(root)
     if any(part in excluded for part in rel.parts):

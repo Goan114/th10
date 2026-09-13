@@ -8,12 +8,13 @@
 <title>东方风神录 ～ Mountain of Faith</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;background:#080c08;color:#d4dccb;font:14px system-ui}body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px}button,select,input{font:inherit}button,select{min-height:40px;padding:8px 12px;border:1px solid #596b44;background:#1e2c19;color:#e5eddc;border-radius:6px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,summary:focus-visible{outline:2px solid #d6ee94;outline-offset:2px}button{touch-action:manipulation}p{margin:0;white-space:pre-wrap}nav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}[hidden]{display:none!important}
-#game-shell{--view-width:min(960px,96vw,calc((100dvh - 176px)*4/3));display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%;background:#080c08}#game-stage{position:relative;max-width:100%;width:var(--view-width)}#game-view{position:relative;width:var(--view-width);max-width:100%;margin:auto}#screen{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#000;outline:none;touch-action:none}#toolbar{max-width:100%;padding:0 4px}#status{text-align:center;font-variant-numeric:tabular-nums;max-height:64px;overflow:auto;overflow-wrap:anywhere}#resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 24px;min-width:180px;background:#1e2c19f5;border:2px solid #d6ee94;z-index:8}#help{width:min(960px,100%);color:#b3bda6}#help p{margin:12px 0;line-height:1.7}#help summary{cursor:pointer;min-height:32px}#help input{max-width:100%}.keyboard-help{line-height:1.6}
+#game-shell{--view-width:min(960px,96vw,calc((100dvh - 176px)*4/3));display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%;background:#080c08}#game-stage{position:relative;max-width:100%;width:var(--view-width)}#game-view{position:relative;width:var(--view-width);max-width:100%;margin:auto}#screen{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#000;outline:none;touch-action:none}#toolbar{max-width:100%;padding:0 4px}#status{text-align:center;font-variant-numeric:tabular-nums;max-height:64px;overflow:auto;overflow-wrap:anywhere}#resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 24px;min-width:180px;background:#1e2c19f5;border:2px solid #d6ee94;z-index:8}#asset-setup,#help{width:min(960px,100%);color:#b3bda6}#asset-setup{padding:8px 12px;border:1px solid #35452d;border-radius:6px;background:#11190f}#asset-setup p,#help p{margin:12px 0;line-height:1.7}#asset-setup summary,#help summary{cursor:pointer;min-height:32px}#asset-setup nav{justify-content:flex-start}#asset-setup input,#help input{max-width:100%}.keyboard-help{line-height:1.6}
 #game-shell:fullscreen,#game-shell.expanded{width:100%;max-width:none;height:100dvh;justify-content:center;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));--view-width:min(calc(100vw - 16px),calc((100dvh - 90px)*4/3))}#game-shell.expanded{position:fixed;inset:0;z-index:10}body:has(#game-shell.expanded){overflow:hidden}
 </style>
-<link rel="stylesheet" href="/runtime/touch-style.css?v=1.0.5">
+<link rel="stylesheet" href="runtime/touch-style.css?v=1.0.5">
 </head>
 <body>
+<details id="asset-setup" open><summary>导入本地游戏数据</summary><p>本站不提供或上传原作数据。请选择你合法持有的 <code>th10.dat</code>（简体版为 <code>th10c.dat</code>）；<code>thbgm.dat</code> 可选，不导入时游戏将静音运行。文件只保存在当前浏览器中。</p><nav><label>选择游戏数据 <input id="asset-import" type="file" accept=".dat" multiple></label><button id="asset-clear" type="button" hidden>清除已导入数据</button></nav><p id="asset-status" role="status">正在检查游戏数据…</p></details>
 <main id="game-shell" aria-label="风神录游戏与操作区">
   <div id="game-stage">
     <div id="game-view"><canvas id="screen" width="640" height="480" tabindex="0" aria-label="东方风神录游戏画面"></canvas><button id="resume" hidden>点击继续游戏</button></div>
@@ -28,7 +29,7 @@
     </div>
     <div id="touch-editor" hidden><span>拖动按键调整位置</span><label>大小 <input id="touch-size" type="range" min="0.6" max="1.8" step="0.05" value="1"></label><button id="touch-layout-reset">重置布局</button><button id="touch-edit-done">保存布局</button></div>
   </div>
-  <nav id="toolbar" aria-label="游戏选项"><select id="language" aria-label="游戏语言"><option value="jp">日文原版</option><option value="chs">简体汉化版</option></select><button id="start">开始游戏</button><button id="fullscreen">全屏</button><button id="touch-configure" hidden>触控设置</button><button id="touch-toggle" aria-pressed="false">显示触控</button><button id="quit" disabled>退出并保存</button><span class="keyboard-help">方向键移动 · Z 射击 / 确认 · Shift 低速 · X 灵击 / 返回 · Esc 暂停</span></nav>
+  <nav id="toolbar" aria-label="游戏选项"><select id="language" aria-label="游戏语言"><option value="jp">日文原版</option><option value="chs">简体汉化版</option></select><button id="start" disabled>开始游戏</button><button id="fullscreen">全屏</button><button id="touch-configure" hidden>触控设置</button><button id="touch-toggle" aria-pressed="false">显示触控</button><button id="quit" disabled>退出并保存</button><span class="keyboard-help">方向键移动 · Z 射击 / 确认 · Shift 低速 · X 灵击 / 返回 · Esc 暂停</span></nav>
   <p id="status" role="status">东方风神录 日文版 1.00a · 点击开始游戏</p>
   <dialog id="touch-settings" aria-labelledby="touch-settings-title">
     <form method="dialog"><h2 id="touch-settings-title">触控设置</h2><button id="touch-settings-close" aria-label="关闭触控设置">关闭</button></form>
@@ -42,6 +43,6 @@
 全屏会保留触控。切换应用后，返回并点击“继续游戏”。
 进度保存在当前浏览器、当前网址，日文与简体版分别保存。更换设备或网址前，请导出备份。支持原版存档和 .rpy 录像。结束时点击“退出并保存”，等待退出后再关闭页面。
 键盘：方向键移动，Z 射击 / 确认，Shift 低速，X 灵击 / 返回，Esc 暂停，Ctrl 快进对话。触控使用默认键位；若修改了键位，请在游戏 Option 中恢复默认。支持手柄。</p><nav><button id="export">导出存档备份</button><label>导入 <input id="import" type="file" accept=".rpy,.dat,.cfg,.json" multiple></label></nav></details>
-<script type="module" src="/runtime/browser-main.mjs"></script>
+<script type="module" src="runtime/browser-main.mjs"></script>
 </body>
 </html>

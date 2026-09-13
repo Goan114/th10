@@ -4,12 +4,12 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-一个力求精准地在行为上将 東方風神録　～ Mountain of Faith ver 1.00a 中的 th10.exe 还原到 wasm 上的项目。
+一个力求尽可能精确地在行为上将 東方風神録　～ Mountain of Faith ver 1.00a 中的 th10.exe 还原到 wasm 上的项目。
 
 > [!NOTE]
 > 尽管代码可读性可能较差，基础功能现在却已经非常完善。欢迎参与优化。
 
-## 精准行为级还原
+## 尽可能精确的行为级还原
 
 「行为级还原」指在已记录的输入和观测范围内，对状态变化、关卡流程、弹幕与碰撞、计分、录像、音频请求、绘制包和浮点行为进行原版对照。
 
@@ -18,13 +18,17 @@
 | 证据 | 当前记录 |
 | --- | --- |
 | 原版长对照 | 七关共 96,000 帧、6,526,503 个绘制包。 |
-| 真实玩家录像 | 7 个完整录像，均和原版行为保持一致。[实战录像验证](docs/REPLAY-VALIDATION.zh-CN.md) |
+| 真实玩家录像 | 7 个完整录像，均与原版行为基本保持一致。[实战录像验证](docs/REPLAY-VALIDATION.zh-CN.md) |
 
 ## 作者
 
 作者：[@SteinsGateON](https://space.bilibili.com/34714121) · [B站空间](https://space.bilibili.com/34714121)
 
+![作者 @SteinsGateON 的 B 站空间](docs/images/author-bilibili.png)
+
 ## 快速开始
+
+打开 [GitHub Pages 在线版](https://yomotsuhisami.github.io/th10/)，导入你合法持有的 `th10.dat`（简体版使用 `th10c.dat`）。`thbgm.dat` 是可选的；不导入时游戏将静音运行。文件只保存在当前浏览器中，不会上传。
 
 完整本地包在 Windows 上双击 `start-windows.cmd`。浏览器会打开 <http://127.0.0.1:8090>，包内已附 Node.js。
 
@@ -81,7 +85,7 @@ python scripts\package.py --verify-checksums
 | `docs` | 验证边界、来源与资源说明 |
 | `tools` | 完整 Windows 包附带的 Node.js 运行时及许可 |
 
-`site` 是部署时的站点根目录。资源 URL 使用 `/runtime`、`/data` 等绝对路径，因此应部署在域名根路径。
+`site` 是部署时的站点根目录。资源 URL 均相对于该目录，因此既可部署在域名根路径，也可部署在 GitHub Pages 等项目子路径。
 
 ## 来源、权利与非官方声明
 

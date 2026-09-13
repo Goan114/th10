@@ -50,7 +50,7 @@
 - 历史公网主机验证（域名已脱敏）：`https://your-domain.example` 与 `127.0.0.1:8090` 当时均返回 `2.0.0-native / cpp-game-logic`，下载模块的 SHA-256 与最终构建一致；入口、脚本、两种语言 DAT、音乐分块及字库可访问，原版 EXE、DLL 与源码路径返回 404。该记录不表示占位域名当前可访问，证据文件为 `validation/native-public-port8090-verification.json`。
 
 - 独立 Wasm：764,480 字节；SHA-256 `22d167fdcc3b72d06489c31d32d714d5467ffb6c5b50d86a0433e8b2ec1a7b61`。
-- 源码清单：404 个文件；内容/路径摘要 `5d67f65a27ba7c00d4e99e9907d6f00fd6287c478685cbf715069cb2bc6dda06`，精确清单见 `source/build-report.json`。
+- 源码清单：404 个文件；内容/路径摘要 `5d67f65a27ba7c00d4e99e9907d6f00fd6287c478685cbf715069cb2bc6dda06`，完整清单见 `source/build-report.json`。
 - 整体回归：`validation/native-complete-regression.log`；使用与最终模块相同字节的 candidate，307/307。
 - Extra：`validation/browser-extra-tests.log`；新增用例单独通过。
 - 长对照：`browser-world-long-oracle.log`、`browser-world-all-long-oracle.log`、`browser-world-stage5-long-verified.log`。第二份记录保留第五关曾触发诊断额度的失败，最终通过结果在第三份记录，未删除失败历史。

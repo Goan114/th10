@@ -9,7 +9,7 @@ A project that aims to reproduce the behavior of `th10.exe` from *Touhou Fuujinr
 > [!NOTE]
 > Although the code may be difficult to read, the core functionality is now very solid. Improvements are welcome.
 
-## Precise behavioral reimplementation
+## Behavioral reimplementation, as accurately as possible
 
 “Behavioral reimplementation” means comparing state transitions, stage flow, bullets and collision, scoring, replays, audio requests, draw packets, and floating-point behavior with the original under recorded inputs and observations.
 
@@ -18,13 +18,17 @@ Original-game bugs such as Marisa B's abnormal damage are preserved as well. Rep
 | Evidence                       | Current record                                                                                                        |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | Long original-game comparisons | 96,000 frames and 6,526,503 draw packets across all seven stages.                                                     |
-| Real-player replays            | 7 complete replays remained behaviorally consistent with the original. [Replay validation](docs/REPLAY-VALIDATION.md) |
+| Real-player replays            | 7 complete replays remained basically behaviorally consistent with the original. [Replay validation](docs/REPLAY-VALIDATION.md) |
 
 ## Author
 
 Author: [@SteinsGateON](https://space.bilibili.com/34714121) · [Bilibili profile](https://space.bilibili.com/34714121)
 
+![Author @SteinsGateON's Bilibili profile](docs/images/author-bilibili.png)
+
 ## Quick start
+
+Open the [GitHub Pages build](https://yomotsuhisami.github.io/th10/) and import a lawfully obtained `th10.dat` (`th10c.dat` for the Simplified Chinese variant). `thbgm.dat` is optional; without it, the game runs silently. Imported files stay in the current browser and are not uploaded.
 
 On Windows, double-click `start-windows.cmd` in the complete local package. Your browser will open <http://127.0.0.1:8090>. Node.js is included in the package.
 
@@ -81,7 +85,7 @@ Read the [contribution guide](CONTRIBUTING.en.md) before making changes.
 | `docs`                           | Validation boundaries, provenance, and asset documentation             |
 | `tools`                          | Node.js runtime and license included with the complete Windows package |
 
-`site` is the deployment root. Resource URLs use absolute paths such as `/runtime` and `/data`, so it should be deployed at the domain root.
+`site` is the deployment root. Resource URLs are relative to it, so the site works either at a domain root or under a project path such as GitHub Pages.
 
 ## Provenance, rights, and unofficial status
 
