@@ -26,13 +26,13 @@ self.onmessage=({data})=>{
  }
 };
 async function start({canvas,audioPort,language='jp',gamepad,assetMode={archive:'remote',music:'remote'}}){
- if(!canvas.getContext('webgl2',{alpha:false,antialias:false,preserveDrawingBuffer:true,premultipliedAlpha:false}))throw new Error('此浏览器无法绘制 WebGL 2 游戏画面');pad=gamepad??pad;
- postMessage({type:'status',message:'读取风神录资源…'});
- const siteUrl=new URL('../',import.meta.url),manifest=await fetch(new URL('manifest.json',siteUrl)).then(response=>{if(!response.ok)throw new Error('无法读取游戏资源清单');return response.json();}),archive=language==='chs'?'th10c.dat':'th10.dat',charset=language==='chs'?134:128,storage=await openNativeStorage(language),saved=await storage.load(),assetStorage=assetMode.archive==='local'||assetMode.music==='local'?await openAssetStorage():null;
+ if(!canvas.getContext('webgl2',{alpha:false,antialias:false,preserveDrawingBuffer:true,premultipliedAlpha:false}))throw new Error('This browser cannot draw the WebGL 2 game screen.');pad=gamepad??pad;
+ postMessage({type:'status',message:'Loading game files...'});
+ const siteUrl=new URL('../',import.meta.url),manifest=await fetch(new URL('manifest.json',siteUrl)).then(response=>{if(!response.ok)throw new Error('Cannot read the game manifest.');return response.json();}),archive=language==='chs'?'th10c.dat':'th10.dat',charset=language==='chs'?134:128,storage=await openNativeStorage(language),saved=await storage.load(),assetStorage=assetMode.archive==='local'||assetMode.music==='local'?await openAssetStorage():null;
  const localArchive=assetMode.archive==='local'?await assetStorage.get(archive):null,localMusic=assetMode.music==='local'?await assetStorage.get('thbgm.dat'):null;
- if(assetMode.archive==='local'&&!localArchive)throw new Error(`请重新导入 ${archive}`);if(assetMode.music==='local'&&!localMusic)throw new Error('请重新导入 thbgm.dat');
+ if(assetMode.archive==='local'&&!localArchive)throw new Error(`Import ${archive} again.`);if(assetMode.music==='local'&&!localMusic)throw new Error('Import thbgm.dat again.');
  const [module,archiveBytes,blend,tables]=await Promise.all([fetchBytes(new URL('vendor/th10-game.wasm',siteUrl)),localArchive?readAssetBytes(localArchive,archive):fetchBytes(new URL('data/'+archive,siteUrl)),fetchGzip(new URL('fonts/blend.bin.gz',siteUrl)),Promise.all(Array.from({length:15},(_,i)=>fetchGzip(new URL(`fonts/${charset}/${32+i*2}-400.json.gz`,siteUrl)).then(bytes=>JSON.parse(new TextDecoder().decode(bytes)))))]);
- const music=new PagedMusic(manifest.music,assetMode.music==='local'?{source:localMusic}:assetMode.music==='silent'?{silent:true}:{});postMessage({type:'status',message:assetMode.music==='silent'?'预载文字；未提供 BGM，将静音运行…':'预载音乐与文字…'});await music.prepare(musicTracks);
+ const music=new PagedMusic(manifest.music,assetMode.music==='local'?{source:localMusic}:assetMode.music==='silent'?{silent:true}:{});postMessage({type:'status',message:assetMode.music==='silent'?'Loading text. No BGM; the game will be silent...':'Loading music and text...'});await music.prepare(musicTracks);
  // The original optional "load music into memory" setting can read a whole
  // track in one call. Keep its full archive resident only when requested.
  const configuration=saved.find(([name])=>name==='th10.cfg')?.[1];if(configuration?.length===52&&(new DataView(configuration.buffer,configuration.byteOffset).getUint32(48,true)&16)){

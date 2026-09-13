@@ -6,6 +6,8 @@
 
 A project that aims to reproduce the behavior of `th10.exe` from *Touhou Fuujinroku ~ Mountain of Faith ver 1.00a* on WebAssembly as accurately as possible.
 
+[Have a try playing?](https://yomotsuhisami.github.io/th10/)
+
 > [!NOTE]
 > Although the code may be difficult to read, the core functionality is now very solid. Improvements are welcome.
 

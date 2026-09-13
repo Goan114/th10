@@ -1,48 +1,48 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="th10-engine" content="native">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080c08">
-<title>东方风神录 ～ Mountain of Faith</title>
+<meta name="theme-color" content="#ffffff">
+<title>Touhou Fuujinroku ~ Mountain of Faith</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;background:#080c08;color:#d4dccb;font:14px system-ui}body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px}button,select,input{font:inherit}button,select{min-height:40px;padding:8px 12px;border:1px solid #596b44;background:#1e2c19;color:#e5eddc;border-radius:6px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,summary:focus-visible{outline:2px solid #d6ee94;outline-offset:2px}button{touch-action:manipulation}p{margin:0;white-space:pre-wrap}nav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}[hidden]{display:none!important}
-#game-shell{--view-width:min(960px,96vw,calc((100dvh - 176px)*4/3));display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%;background:#080c08}#game-stage{position:relative;max-width:100%;width:var(--view-width)}#game-view{position:relative;width:var(--view-width);max-width:100%;margin:auto}#screen{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#000;outline:none;touch-action:none}#toolbar{max-width:100%;padding:0 4px}#status{text-align:center;font-variant-numeric:tabular-nums;max-height:64px;overflow:auto;overflow-wrap:anywhere}#resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 24px;min-width:180px;background:#1e2c19f5;border:2px solid #d6ee94;z-index:8}#asset-setup,#help{width:min(960px,100%);color:#b3bda6}#asset-setup{padding:8px 12px;border:1px solid #35452d;border-radius:6px;background:#11190f}#asset-setup p,#help p{margin:12px 0;line-height:1.7}#asset-setup summary,#help summary{cursor:pointer;min-height:32px}#asset-setup nav{justify-content:flex-start}#asset-setup input,#help input{max-width:100%}.keyboard-help{line-height:1.6}
-#game-shell:fullscreen,#game-shell.expanded{width:100%;max-width:none;height:100dvh;justify-content:center;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));--view-width:min(calc(100vw - 16px),calc((100dvh - 90px)*4/3))}#game-shell.expanded{position:fixed;inset:0;z-index:10}body:has(#game-shell.expanded){overflow:hidden}
+*{box-sizing:border-box}html{background:#fff;color:#000;font:16px "Times New Roman",serif}body{width:min(960px,100%);margin:0 auto;padding:12px}h1{font-size:2em;margin:.3em 0}button,select,input{font:inherit}button{touch-action:manipulation}p{margin:.75em 0}nav{display:flex;flex-wrap:wrap;gap:6px;align-items:center}[hidden]{display:none!important}summary{cursor:pointer}hr{margin:1em 0}.file-link{color:#0000ee;text-decoration:underline;cursor:pointer}
+#game-shell{--view-width:min(960px,calc(100vw - 24px),calc((100dvh - 176px)*4/3));display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%}#game-stage{position:relative;max-width:100%;width:var(--view-width)}#game-view{position:relative;width:var(--view-width);max-width:100%;margin:auto}#screen{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#000;outline:none;touch-action:none}#toolbar{max-width:100%;justify-content:center}#status{text-align:center;font-variant-numeric:tabular-nums;max-height:64px;overflow:auto;overflow-wrap:anywhere}#resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:12px;z-index:8}#asset-setup,#help{width:100%}#asset-setup input,#help input{max-width:100%}.keyboard-help{line-height:1.4}
+#game-shell:fullscreen,#game-shell.expanded{width:100%;max-width:none;height:100dvh;justify-content:center;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));background:#000;color:#fff;--view-width:min(calc(100vw - 16px),calc((100dvh - 90px)*4/3))}#game-shell.expanded{position:fixed;inset:0;z-index:10}body:has(#game-shell.expanded){overflow:hidden}
 </style>
 <link rel="stylesheet" href="runtime/touch-style.css?v=1.0.5">
 </head>
 <body>
-<details id="asset-setup" open><summary>导入本地游戏数据</summary><p>本站不提供或上传原作数据。请选择你合法持有的 <code>th10.dat</code>（简体版为 <code>th10c.dat</code>）；<code>thbgm.dat</code> 可选，不导入时游戏将静音运行。文件只保存在当前浏览器中。</p><nav><label>选择游戏数据 <input id="asset-import" type="file" accept=".dat" multiple></label><button id="asset-clear" type="button" hidden>清除已导入数据</button></nav><p id="asset-status" role="status">正在检查游戏数据…</p></details>
-<main id="game-shell" aria-label="风神录游戏与操作区">
+<h1>Touhou 10</h1>
+<p>Use files from your own copy of <i>Touhou Fuujinroku ~ Mountain of Faith ver 1.00a</i>.</p>
+<details id="asset-setup" open><summary>Game files</summary><p>Required: <code>th10.dat</code> (or <code>th10c.dat</code>). Optional: <code>thbgm.dat</code>. Without BGM, the game is silent. Files stay in this browser.</p><nav><label class="file-link">Select game files<input id="asset-import" type="file" accept=".dat" multiple hidden></label><button id="asset-clear" type="button" hidden>Clear game files</button></nav><p id="asset-status" role="status">Checking game files...</p></details>
+<hr>
+<main id="game-shell" aria-label="Touhou 10 game and controls">
   <div id="game-stage">
-    <div id="game-view"><canvas id="screen" width="640" height="480" tabindex="0" aria-label="东方风神录游戏画面"></canvas><button id="resume" hidden>点击继续游戏</button></div>
+    <div id="game-view"><canvas id="screen" width="640" height="480" tabindex="0" aria-label="Touhou 10 game screen"></canvas><button id="resume" hidden>Resume</button></div>
     <div id="touch-controls" hidden>
-      <div id="direction-pad" data-control role="group" aria-label="八方向移动，按住并滑动" hidden><span class="pad-up">▲</span><span class="pad-left">◀</span><span class="pad-right">▶</span><span class="pad-down">▼</span><i class="pad-stick"></i></div>
-      <button id="touch-shot" data-control data-keys="KeyZ" aria-pressed="false" disabled>确认</button>
-      <button id="touch-bomb" data-control data-keys="KeyX" disabled>灵击<br>返回</button>
-      <button id="touch-focus" data-control data-keys="ShiftLeft" aria-pressed="false" disabled>低速</button>
-      <button id="touch-pause" data-control data-keys="Escape" disabled>暂停</button>
-      <button id="touch-skip" data-control data-keys="ControlLeft" disabled>快进</button>
-      <p id="touch-hint">滑动选择 · 点按确认 · 双指点按返回</p>
+      <div id="direction-pad" data-control role="group" aria-label="Eight-way movement" hidden><span class="pad-up">▲</span><span class="pad-left">◀</span><span class="pad-right">▶</span><span class="pad-down">▼</span><i class="pad-stick"></i></div>
+      <button id="touch-shot" data-control data-keys="KeyZ" aria-pressed="false" disabled>Confirm</button>
+      <button id="touch-bomb" data-control data-keys="KeyX" disabled>Bomb<br>Back</button>
+      <button id="touch-focus" data-control data-keys="ShiftLeft" aria-pressed="false" disabled>Focus</button>
+      <button id="touch-pause" data-control data-keys="Escape" disabled>Pause</button>
+      <button id="touch-skip" data-control data-keys="ControlLeft" disabled>Skip</button>
+      <p id="touch-hint">Swipe to select. Tap to confirm. Two-finger tap to go back.</p>
     </div>
-    <div id="touch-editor" hidden><span>拖动按键调整位置</span><label>大小 <input id="touch-size" type="range" min="0.6" max="1.8" step="0.05" value="1"></label><button id="touch-layout-reset">重置布局</button><button id="touch-edit-done">保存布局</button></div>
+    <div id="touch-editor" hidden><span>Drag buttons to move them.</span><label>Size <input id="touch-size" type="range" min="0.6" max="1.8" step="0.05" value="1"></label><button id="touch-layout-reset">Reset</button><button id="touch-edit-done">Save layout</button></div>
   </div>
-  <nav id="toolbar" aria-label="游戏选项"><select id="language" aria-label="游戏语言"><option value="jp">日文原版</option><option value="chs">简体汉化版</option></select><button id="start" disabled>开始游戏</button><button id="fullscreen">全屏</button><button id="touch-configure" hidden>触控设置</button><button id="touch-toggle" aria-pressed="false">显示触控</button><button id="quit" disabled>退出并保存</button><span class="keyboard-help">方向键移动 · Z 射击 / 确认 · Shift 低速 · X 灵击 / 返回 · Esc 暂停</span></nav>
-  <p id="status" role="status">东方风神录 日文版 1.00a · 点击开始游戏</p>
+  <nav id="toolbar" aria-label="Game options"><select id="language" aria-label="Game language"><option value="jp">Japanese</option><option value="chs">Simplified Chinese</option></select><button id="start" disabled>Start</button><button id="fullscreen">Fullscreen</button><button id="touch-configure" hidden>Touch settings</button><button id="touch-toggle" aria-pressed="false">Show touch controls</button><button id="quit" disabled>Quit and save</button><span class="keyboard-help">Arrows: move · Z: shoot/confirm · Shift: focus · X: bomb/back · Esc: pause</span></nav>
+  <p id="status" role="status">Touhou 10 1.00a</p>
   <dialog id="touch-settings" aria-labelledby="touch-settings-title">
-    <form method="dialog"><h2 id="touch-settings-title">触控设置</h2><button id="touch-settings-close" aria-label="关闭触控设置">关闭</button></form>
-    <label>移动方式 <select id="touch-movement"><option value="drag">画面拖动</option><option value="joystick">八方向摇杆</option></select></label>
-    <label>低速操作 <select id="touch-focus-mode"><option value="hold">按住低速键</option><option value="toggle">点按切换低速</option><option value="two-finger">第二根手指按住低速</option></select></label>
-    <label for="touch-sensitivity">拖动灵敏度 <output id="touch-sensitivity-value">100%</output></label><input id="touch-sensitivity" type="range" min="50" max="300" step="10" value="100">
-    <button id="touch-edit">调整按键位置与大小</button><p>横屏、竖屏分别记住布局。画面拖动保留原版移动速度；按住低速时，拖动也会减速。</p>
+    <form method="dialog"><h2 id="touch-settings-title">Touch settings</h2><button id="touch-settings-close" aria-label="Close touch settings">Close</button></form>
+    <label>Movement <select id="touch-movement"><option value="drag">Drag screen</option><option value="joystick">Joystick</option></select></label>
+    <label>Focus <select id="touch-focus-mode"><option value="hold">Hold button</option><option value="toggle">Toggle button</option><option value="two-finger">Hold second finger</option></select></label>
+    <label for="touch-sensitivity">Sensitivity <output id="touch-sensitivity-value">100%</output></label><input id="touch-sensitivity" type="range" min="50" max="300" step="10" value="100">
+    <button id="touch-edit">Edit layout</button><p>Portrait and landscape layouts are saved separately.</p>
   </dialog>
 </main>
-<details id="help"><summary>存档、录像与操作说明</summary><p>手机默认使用画面拖动，并在战斗中自动射击。点“射击 开”可以关闭连射。菜单中滑动选择、点按确认、双指点按返回；对话中点按推进，长按快进。触控设置中可选择摇杆、调整低速操作、灵敏度和按键布局。
-全屏会保留触控。切换应用后，返回并点击“继续游戏”。
-进度保存在当前浏览器、当前网址，日文与简体版分别保存。更换设备或网址前，请导出备份。支持原版存档和 .rpy 录像。结束时点击“退出并保存”，等待退出后再关闭页面。
-键盘：方向键移动，Z 射击 / 确认，Shift 低速，X 灵击 / 返回，Esc 暂停，Ctrl 快进对话。触控使用默认键位；若修改了键位，请在游戏 Option 中恢复默认。支持手柄。</p><nav><button id="export">导出存档备份</button><label>导入 <input id="import" type="file" accept=".rpy,.dat,.cfg,.json" multiple></label></nav></details>
+<details id="help"><summary>Controls and saves</summary><p>Keyboard: arrows move; Z shoots or confirms; Shift focuses; X bombs or goes back; Esc pauses; Ctrl skips dialogue.</p><p>Touch: drag to move. Tap to confirm. Two-finger tap to go back.</p><p>Use Quit and save before closing. Export saves before changing browser or device.</p><nav><button id="export">Export saves</button><label class="file-link">Import saves or replays<input id="import" type="file" accept=".rpy,.dat,.cfg,.json" multiple hidden></label></nav></details>
 <script type="module" src="runtime/browser-main.mjs"></script>
 </body>
 </html>

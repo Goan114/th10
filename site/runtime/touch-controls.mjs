@@ -43,11 +43,11 @@ export function installTouchControls({root,input,onGesture=()=>{},send=()=>{},on
   function visible(){return !panel.hidden;}
   function configure(){send({type:'touch-options',enabled:enabled&&visible()&&!editing,fire:options.fire});}
   function render(){
-    shot.setAttribute('aria-pressed',String(context==='gameplay'&&options.fire));shot.textContent=context==='gameplay'?(options.fire?'射击 开':'射击 关'):'确认';
-    focus.setAttribute('aria-pressed',String(input.down.has('ShiftLeft')));focus.textContent='低速';
+    shot.setAttribute('aria-pressed',String(context==='gameplay'&&options.fire));shot.textContent=context==='gameplay'?(options.fire?'Shot on':'Shot off'):'Confirm';
+    focus.setAttribute('aria-pressed',String(input.down.has('ShiftLeft')));focus.textContent='Focus';
     for(const button of controls)if(button.dataset.keys)button.classList.toggle('pressed',button.dataset.keys.split(' ').every(key=>input.down.has(key)));
     pad.hidden=options.movement!=='joystick'&&!editing;
-    root.querySelector('#touch-hint').textContent=context==='gameplay'?(options.movement==='drag'?'在画面上拖动移动 · 默认自动射击':'方向盘移动 · 默认自动射击'):context==='dialogue'?'点按推进对话 · 长按快进':'滑动选择 · 点按确认 · 双指点按返回';
+    root.querySelector('#touch-hint').textContent=context==='gameplay'?(options.movement==='drag'?'Drag to move. Auto-fire is on.':'Use the pad to move. Auto-fire is on.'):context==='dialogue'?'Tap to continue. Hold to skip.':'Swipe to select. Tap to confirm. Two-finger tap to go back.';
   }
   function layout(){
     const key=orientation(),box=stage.getBoundingClientRect();if(!box.width||!box.height)return;
@@ -64,7 +64,7 @@ export function installTouchControls({root,input,onGesture=()=>{},send=()=>{},on
     render();
   }
   function clear(){for(const id of [...pointers.keys()])release(id,true);focusToggle=false;input.set('touch:focus-toggle',[]);send({type:'touch-cancel'});render();}
-  function visibility(){clear();const show=preference==='on'||(preference==='auto'&&media.matches);root.classList.toggle('touch-mode',show);panel.hidden=!show;toggle.setAttribute('aria-pressed',String(show));toggle.textContent=show?'隐藏触控':'显示触控';document.querySelector('#touch-configure').hidden=!show;render();layout();configure();}
+  function visibility(){clear();const show=preference==='on'||(preference==='auto'&&media.matches);root.classList.toggle('touch-mode',show);panel.hidden=!show;toggle.setAttribute('aria-pressed',String(show));toggle.textContent=show?'Hide touch controls':'Show touch controls';document.querySelector('#touch-configure').hidden=!show;render();layout();configure();}
   function capture(element,event,p){event.preventDefault();onGesture();element.setPointerCapture(event.pointerId);pointers.set(event.pointerId,{element,...p});}
   function movePad(event){if(event.pointerId!==padPointer)return;const box=pad.getBoundingClientRect(),x=(event.clientX-box.left-box.width/2)/(box.width/2),y=(event.clientY-box.top-box.height/2)/(box.height/2),length=Math.max(1,Math.hypot(x,y));input.set('touch:'+event.pointerId,directionKeys(x,y));pad.style.setProperty('--stick-x',`${x/length*26}px`);pad.style.setProperty('--stick-y',`${y/length*26}px`);render();}
   for(const element of controls){

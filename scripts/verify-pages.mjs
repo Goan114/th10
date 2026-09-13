@@ -5,10 +5,12 @@ import {fileURLToPath} from 'node:url';
 
 const root=fileURLToPath(new URL('../',import.meta.url)),read=path=>readFileSync(root+path,'utf8');
 const html=read('site/index.html'),runtimeFiles=readdirSync(root+'site/runtime').filter(name=>name.endsWith('.mjs'));
+assert.match(html,/<html lang="en">/);assert.doesNotMatch(html,/[\u3400-\u9fff]/,'Pages UI must be English');
 assert.match(html,/id="asset-import"/);assert.match(html,/id="asset-status"/);assert.match(html,/id="start" disabled/);
 assert.doesNotMatch(html,/(?:src|href)="\/(?:runtime|vendor|fonts|data)\//);
 for(const name of runtimeFiles){
   const path=root+'site/runtime/'+name,source=read('site/runtime/'+name);
+  assert.doesNotMatch(source,/[\u3400-\u9fff]/,`${name} UI text must be English`);
   assert.doesNotMatch(source,/(?:fetch|addModule|new Worker)\(\s*['"]\/(?:runtime|vendor|fonts|data|manifest)/,name);
   execFileSync(process.execPath,['--check',path],{stdio:'pipe'});
 }
