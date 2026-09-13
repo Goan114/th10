@@ -1,0 +1,24 @@
+node_modules/
+# Original game and translation data are supplied locally by lawful owners.
+/site/data/
+source/artifacts/
+source/tools/
+artifacts/
+dist/
+__pycache__/
+*.pyc
+*.zip
+*.7z
+*.tar.gz
+*.sha256
+*.tmp
+*.log
+!validation/*.log
+.env
+.env.*
+*.pem
+*.key
+cloudflared-token.txt
+processes.json
+.DS_Store
+Thumbs.db

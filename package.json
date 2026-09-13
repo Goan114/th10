@@ -1,0 +1,14 @@
+{
+  "name": "th10-cpp-web",
+  "version": "2.0.0-native",
+  "description": "Precise behavior-level reconstruction of Touhou 10 v1.00a in C++ and WebAssembly",
+  "private": true,
+  "type": "module",
+  "keywords": ["touhou", "th10", "cpp", "webassembly", "behavioral-reimplementation"],
+  "scripts": {
+    "start": "node scripts/serve.mjs --dist --dist-dir site --port 8090",
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "engines": {"node": ">=24"}
+}

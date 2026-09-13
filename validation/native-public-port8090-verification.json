@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-09-12T02:39:46.617Z",
+  "results": [
+    {
+      "base": "http://127.0.0.1:8090",
+      "status": 200,
+      "version": "2.0.0-native",
+      "kind": "cpp-game-logic",
+      "sha256": "22d167fdcc3b72d06489c31d32d714d5467ffb6c5b50d86a0433e8b2ec1a7b61",
+      "cache": null,
+      "resources": 8
+    },
+    {
+      "base": "https://your-domain.example",
+      "status": 200,
+      "version": "2.0.0-native",
+      "kind": "cpp-game-logic",
+      "sha256": "22d167fdcc3b72d06489c31d32d714d5467ffb6c5b50d86a0433e8b2ec1a7b61",
+      "cache": "DYNAMIC",
+      "resources": 8
+    }
+  ]
+}

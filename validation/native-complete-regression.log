@@ -1,0 +1,729 @@
+✔ Capture requests match original sprite rounding, field ordering and refusal to overwrite a pending request (374.0896ms)
+✔ ANM distortion preserves its script RNG, radial drift, shared UV speed, seam and uninitialized fields (877.0746ms)
+✔ Cameras and ANM layer boundaries match transforms, unsigned viewports, shake, fog and draw order (330.422ms)
+✔ ANM quad geometry matches original anchors, pixel floors, retained precision and rotated corners (249.4858ms)
+✔ ANM rendering matches clipping, UVs, tint, material flushes, vertex order and draw dispatch (563.3273ms)
+✔ ANM strip texture coordinates preserve odd vertices, backward UV steps and precision accumulation (1086.666ms)
+✔ ANM projection matches matrix invalidation, billboard depth, camera scaling, both fog rules and mesh strips (381.1044ms)
+✔ ANM manager initialization and teardown preserve callback priorities, template bytes and geometry ownership (470.8758ms)
+✔ Animation text matches original left/right/center alignment, font limits, encoded lengths and floating conversions (1034.4193ms)
+✔ Text raster matches original GDI order, shadow/flat fill, alpha edges and source/destination rectangles (581.2369ms)
+✔ Application configuration matches defaults, file validation, key mapping and ordered startup notices (177.6541ms)
+✔ Application driver matches startup failures, messages, device recovery, restarts and final resource cleanup (209.9761ms)
+✔ Application frame matches input/audio/loading order, exit gates, render cache reset, camera and final flush (252.5708ms)
+✔ Frame loop matches 60Hz deadlines, backward time, signed skip counter, update exits and presentation order (327.2854ms)
+✔ System settings preserve query failures, restoration order and clock outputs (136.7561ms)
+✔ Application transitions match every screen pair, replay mode, retries, ending/title return and callback mutations (4672.9722ms)
+✔ Application shutdown observes original screen order and nullable global owners (145.5941ms)
+✔ Application loading matches worker replacement, locks, three loading animations, completion and failure state (392.3271ms)
+✔ Application startup and shutdown match resource errors, callback registration, thread order, timer cleanup and fresh device fields (490.5ms)
+✔ Archive catalog matches first-slash lookup, case sensitivity, external files and memory stream replacement (328.7199ms)
+✔ Archive index construction, release and file/memory startup match original ownership and all loading failures (407.9351ms)
+✔ File and memory streams match original modes, paths, short IO, offset boundaries, overlap and resource failures (526.2688ms)
+✔ C++ ARGB4444 decoding matches all 65536 pixel values and six original floating modes (560.0554ms)
+✔ C++ ARGB4444 quantization matches rounding boundaries, negative/clamped values and randomized rows (219.2147ms)
+✔ Music command execution matches phased switching, busy buffers, fade, pause/resume, deletion and queue shifting (2901.0924ms)
+✔ Effect playback matches merged pans, cubic volume, silent channels, stop requests and callback mutations (1093.0754ms)
+✔ Music lookup and unload match path precedence, unknown titles, thread joins and nullable ownership (457.8069ms)
+✔ Audio device lifecycle matches initialization, thread joins, source setup, primary format and resource release (2119.7605ms)
+✔ Original WAV parsing matches chunk order, short headers, split PCM writes, cancellation and errors (336.1098ms)
+✔ Game music requests match queue order, heard-track flags, extensions and speed-adjusted fading (7371.7324ms)
+✔ Audio queues match effect coalescing, cancellation order, position conversion and music queue saturation (3769.9853ms)
+✔ Music resources match file startup, cache replacement and cached playback including failure and callback mutations (911.387ms)
+✔ Sound-source worker preserves cancellation, missing-wave handling and the end-of-loading barrier (173.3795ms)
+✔ Music worker matches notification filling, busy flags, pointer changes, message draining and quit (128.1018ms)
+✔ batch staging preserves list, strip and fan bytes, winding, state boundaries and large batches (98.826ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent animation and common-resource owners match original scripts, child lists, ASCII and layered draw packets (7575.6442ms)
+ℹ {"checkedScripts":386,"checkedFrames":6176,"drawn":5382}
+✔ Native application boots, enters gameplay, pauses, resumes, takes screenshots and closes: jp (2543.0271ms)
+ℹ {"language":"jp","frames":1011,"presents":1009,"draws":29507}
+✔ Native application boots, enters gameplay, pauses, resumes, takes screenshots and closes: chs (6460.7603ms)
+ℹ {"language":"chs","frames":1011,"presents":1009,"draws":29507}
+✔ Native application opens an imported original-format replay and returns to its replay browser (3565.1536ms)
+ℹ {"frames":2206,"replayFrames":1426,"draws":86587}
+✔ Native application retains stage pools, retries, returns to title and hands an ending to the clear menu (6877.4887ms)
+ℹ {"frames":7712,"endingFrames":5569,"draws":89821}
+✔ Native audio handles preserve split writes, duplicate storage, notifications, PCM mixing and release ownership (14.2592ms)
+✔ Native C++ music tasks refill streaming audio, retain pause state and retire workers across repeated cache changes (57.3543ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent backgrounds run all seven original STD scenes with matching cameras, culling, fog, animations and transition packets (13511.4931ms)
+ℹ {"frames":2520,"draws":104892}
+✔ Independent C++ campaign crosses all six real stages and reaches its ending with test-only invulnerability (269489.6434ms)
+ℹ {"stage":1,"frame":0}
+ℹ {"stage":2,"frame":7923}
+ℹ {"stage":3,"frame":18232}
+ℹ {"stage":4,"frame":30697}
+ℹ {"stage":5,"frame":45665}
+ℹ {"stage":6,"frame":60312}
+ℹ {"assisted":true,"campaignFrames":76473,"endingFrames":5582,"draws":5190304}
+✔ Native capture surfaces match D3DX point, triangle, format conversion and exact copies (707.9559ms)
+ℹ {"cases":108}
+✔ Independent endings and credits complete all twelve real MSG routes: jp (45043.8081ms)
+ℹ {"language":"jp","route":0,"frames":229}
+ℹ {"language":"jp","route":1,"frames":229}
+ℹ {"language":"jp","route":2,"frames":217}
+ℹ {"language":"jp","route":3,"frames":253}
+ℹ {"language":"jp","route":4,"frames":253}
+ℹ {"language":"jp","route":5,"frames":253}
+ℹ {"language":"jp","route":6,"frames":5569}
+ℹ {"language":"jp","route":7,"frames":5545}
+ℹ {"language":"jp","route":8,"frames":5509}
+ℹ {"language":"jp","route":9,"frames":5509}
+ℹ {"language":"jp","route":10,"frames":5509}
+ℹ {"language":"jp","route":11,"frames":5497}
+ℹ {"language":"jp","frames":34572,"draws":137196}
+✔ Independent endings and credits complete all twelve real MSG routes: chs (93292.4737ms)
+ℹ {"language":"chs","route":0,"frames":229}
+ℹ {"language":"chs","route":1,"frames":229}
+ℹ {"language":"chs","route":2,"frames":217}
+ℹ {"language":"chs","route":3,"frames":253}
+ℹ {"language":"chs","route":4,"frames":253}
+ℹ {"language":"chs","route":5,"frames":253}
+ℹ {"language":"chs","route":6,"frames":5569}
+ℹ {"language":"chs","route":7,"frames":5545}
+ℹ {"language":"chs","route":8,"frames":5509}
+ℹ {"language":"chs","route":9,"frames":5509}
+ℹ {"language":"chs","route":10,"frames":5509}
+ℹ {"language":"chs","route":11,"frames":5497}
+ℹ {"language":"chs","frames":34572,"draws":137196}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent screen effects preserve chained fades, shakes, viewport packets, random streams and deferred deletion (2436.5941ms)
+✔ Independent file handles share writes, preserve source buffers and keep player overlays separate (2.0165ms)
+✔ Independent C++ resource file platform saves and reloads binary records without a CPU or PE image (6.0544ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+✔ Independent Japanese and Chinese text matches Windows GDI and the original shadow/alpha/texture pipeline (30580.917ms)
+✔ Independent C++ graphics renders all ten animation modes through the browser platform with original draw packets (393.0588ms)
+✔ Native graphics handles preserve texture ownership, partial copies, memory growth and presentation (15.7263ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+✔ Independent HUD and dialogue compose both translations, seven stages and both characters with original text pixels and draw packets (127708.3604ms)
+ℹ {"language":"jp","frames":11173,"draws":100565,"messages":34,"originalResults":2}
+ℹ {"language":"chs","frames":11173,"draws":100565,"messages":34,"originalResults":2}
+✔ Independent C++ input matches original polling and held-key repeats across keyboard, touch and gamepad snapshots (567.0075ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+✔ Independent replay files preserve recorded streams, Japanese/Chinese metadata, calendar dates and original repeated-save behavior (12308.7687ms)
+✔ Independent triangle resampling preserves original text atlas pixels and alpha across scaling and rounding (16378.7423ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+✔ Independent score ownership loads both languages and writes original-compatible encrypted records byte for byte (46102.0857ms)
+✔ Independent startup composes resources and audio, waits for the original opening interval, then releases and saves a complete menu session (9209.0208ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Native game text formatting matches original integer widths, padding, strings and decimal rounding (4298.0242ms)
+ℹ {"checks":12225}
+✔ Native texture uploads preserve padding and original conversions across RGB and alpha formats (726.5884ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[32,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[34,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[36,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[38,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[40,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[42,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[44,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[46,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[48,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[50,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[52,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[54,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[56,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[58,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+FONT [[60,0,0,0,400,0,0,0,134,0,0,4,17],"SimHei"]
+✔ Independent title menus compose original input, animations, dynamic text, scores, replay previews and sound commands (33931.1298ms)
+ℹ {"language":"jp","frames":3421,"draws":16709}
+ℹ {"language":"chs","frames":3421,"draws":16709}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:1:0:0:1 (37147.6328ms)
+ℹ {"description":"jp:1:0:0:1","assisted":false,"frames":2400,"draws":139442,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:2:0:1:0 (44727.3068ms)
+ℹ {"description":"jp:2:0:1:0","assisted":false,"frames":2400,"draws":64429,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:3:0:2:2 (50454.4441ms)
+ℹ {"description":"jp:3:0:2:2","assisted":false,"frames":2400,"draws":67694,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:4:1:0:3 (47586.344ms)
+ℹ {"description":"jp:4:1:0:3","assisted":false,"frames":2400,"draws":147963,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:5:1:1:1 (54129.2682ms)
+ℹ {"description":"jp:5:1:1:1","assisted":false,"frames":2400,"draws":109760,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:6:1:2:2 (92710.9664ms)
+ℹ {"description":"jp:6:1:2:2","assisted":false,"frames":2400,"draws":360118,"pending":0}
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ Independent gameplay matches original assets and inputs: jp:7:0:0:4 (55383.7909ms)
+ℹ {"description":"jp:7:0:0:4","assisted":false,"frames":2400,"draws":291186,"pending":0}
+✔ Independent gameplay loads the real stage resources and runs player, enemies, projectiles, items, GUI and replay together (3286.3604ms)
+ℹ {"frames":1200,"draws":65754,"maximumEnemies":8}
+✔ Capture pixel operations match texture copies, rectangle conversion, device loss recovery and failure ownership (575.5851ms)
+✔ Two clear submissions match original order, viewport, fresh devices and reset results (153.632ms)
+✔ Common resources match original allocation, three ANM files, disabled callbacks, initialization and destruction order (889.7309ms)
+✔ ASCII queues match capacities, small-font marking, wrapping frame counters and preserved entry bytes (432.5334ms)
+✔ ASCII drawing matches both queues, newlines, spacing, cameras, shadows, sprite sizes and floating modes (1677.1878ms)
+✔ D3DX float row acceleration preserves original DLL resampling, including text atlas sizes (948.6136ms)
+✔ in-guest CRT math preserves double results, cdecl stack and caller rounding mode (133ms)
+✔ text preparation preserves the suspended game CPU, active stack and game clock (360.2205ms)
+✔ ARGB4444 quantization matches the original DLL on both sides of every rounding boundary (221.8079ms)
+✔ Dialogue MSG opcodes, portraits, text, waits, stage completion and clocks match original instructions (7703.4071ms)
+✔ Dialogue construction, script offsets, release and encrypted strings preserve the original lifecycle (161.2487ms)
+✔ Ending script matches all MSG commands, page waits, skip flags, credits, resource loading and timer rounding (3508.9766ms)
+✔ Ending resources match five text rows, both ending sets, unlocks, workers, failed files, credits reload and ownership (287.4789ms)
+✔ Font resources match bitmap formats, fallback, extra DIB row, resource ownership, RNG and all 15 font sizes (566.4489ms)
+✔ Frame statistics match lifecycle, half-second sampling, timer correction, pause accounting and FPS colors (1405.1905ms)
+✔ mixed game C++ callbacks preserve caller execution state and original ECL side effects (309.6983ms)
+✔ recovered respawn passes the death position through the laser cancellation service (324.3263ms)
+✔ a C++ script service waiting on a guest lock lets its owner finish and resumes the same caller (163.5928ms)
+✔ platform calls accept bounded C++ output buffers without extending ordinary guest memory access (157.5497ms)
+✔ Direct3D device creation preserves its persistent floating point mode across the C++ service boundary (189.5311ms)
+✔ a direct C++ Sleep call runs peer threads before returning to the loader (161.7398ms)
+✔ joining and closing a resource worker leaves the game thread runnable after its next frame yield (149.6754ms)
+✔ audio source loading can suspend while another C++ thread joins it (159.6987ms)
+✔ the recovered music notification worker can receive quit while its C++ owner joins it (142.513ms)
+✔ the recovered device loader releases its completion barrier when another C++ thread joins after an initialization failure (148.7047ms)
+✔ a C++ Present returns the completed callback to the scheduler before advancing another frame (139.3552ms)
+✔ the C++ frame deadline Sleep(0) yields without retaining the game frame on the service stack (140.1361ms)
+✔ Game log matches bounded append, error retention, format arguments and lock ordering (282.639ms)
+✔ recovered game classes compile without CPU interpreter or translated instruction imports (5.2347ms)
+✔ Rng reconstructs every 16-bit seed, including counter wrap, against original instructions (409.3059ms)
+✔ Rng unit and signed outputs preserve extended arithmetic for original precision modes (176.4397ms)
+✔ Timer matches original fractional accumulation and integer conversion boundaries (177.584ms)
+✔ MenuCursor reproduces nesting, saturation, wrapping, clamping and disabled entries (119.0206ms)
+✔ AnmVm initialization retains original fields and clears the complete animation state (239.7854ms)
+✔ EclStack matches tagged conversions, raw copies, overflow, underflow and nested frames (147.3978ms)
+✔ ECL arguments follow masks, local frames, typed stack pops and external variable callbacks (118.762ms)
+✔ Interpolation easing preserves all curve modes and original extended intermediate values (121.0875ms)
+✔ Animation interpolation preserves motion, curves, Hermite tangents, completion and spill rounding (363.846ms)
+✔ ECL interpreter arithmetic and comparisons match original typed-stack instruction execution (162.6205ms)
+✔ ECL time gates, difficulty filtering, wait, branching, assignments and frame operations match original (142.5978ms)
+✔ ECL subroutine calls preserve argument conversion, caller frames, cross-context calls and missing names (113.7336ms)
+✔ Color and alpha interpolation reproduce per-term integer conversion and completion (267.6298ms)
+✔ ANM variables and writable references preserve original conversions and distinct random streams (126.9898ms)
+✔ ANM interpreter matches original arithmetic, jumps, transforms, colors, interpolation and flags (158.31ms)
+✔ ANM sprite binding reconstructs matrices and leaves unavailable resources untouched (135.5824ms)
+✔ ANM ring geometry and interrupt return paths match original frame updates (117.4895ms)
+✔ ECL thread scheduling starts children on the next pass and removes completed contexts in order (108.8675ms)
+✔ Movement matches original Cartesian/orbital motion and downward hundredth-unit snapping (141.9307ms)
+✔ Enemy script globals preserve original integer/float differences, random streams and writable slots (294.1519ms)
+✔ Enemy movement frame matches interpolation, camera offsets, clamps and despawn decisions before ECL (465.0957ms)
+✔ Enemy movement commands match original sentinel handling, angle reflection, orbit centers and random motion (318.8411ms)
+✔ Enemy phase interrupts match health priority, timeout penalties, countdown rounding and spell capture loss (249.442ms)
+✔ Animation registry matches lookup order, missing handles and root-only child propagation (144.9636ms)
+✔ Animation script rebinding preserves locals, resets durations, advances the first frame and counts starts (154.0496ms)
+✔ Initial animation binding preserves its owner and position, initializes scripts and clears unavailable VMs (157.4528ms)
+✔ Complete enemy frame preserves script/damage/phase/animation ordering across player and spell states (394.4713ms)
+✔ Enemy state commands match flags, hitboxes, boss slots, drops, phase setup and difficulty/rank parameter selection (872.2521ms)
+✔ Enemy death and item scatter preserve emission order, duplicated RNG words, rounding, sound position and faith timer cap (233.9991ms)
+✔ Item spawning matches both pools, overflow, power conversion, animation setup and faith-value tiers (1024.2251ms)
+✔ Item economy preserves signed power, rank and score saturation plus UI event order (186.3566ms)
+✔ Item frames match descent, delayed faith, attraction, collection, score and full-power conversion (5355.3408ms)
+✔ Item drawing matches upper-edge indicators, alpha bytes, sprite replacement and submission order (369.6352ms)
+✔ Player rectangle and laser collisions preserve graze, dialog and invulnerability differences (305.3184ms)
+✔ Player circular damage allocation matches full pools, flags, timer rounding and retained slots (214.4803ms)
+✔ Player damage matches shot callbacks, laser cadence, explosion geometry and accumulated score (428.5001ms)
+✔ Bomb damage matches inner-radius and outer-radius rules for characters, bosses and spell cards (125.6428ms)
+✔ Pooled animation script binding retains locals and custom timer rates while clearing unavailable scripts (111.4565ms)
+✔ Animation manager matches two-slot allocation, four list orders, coordinate modes and pooled/heap removal (6208.7708ms)
+✔ Player hit and death preserve effects, deathbomb timing, faith loss, option resets and spell penalties (2529.6741ms)
+✔ Player movement matches opposing keys, focus, integer boundaries, option callbacks and history (6221.9955ms)
+✔ Player placement and shot clipping preserve original integer conversion and strict boundaries (134.4272ms)
+✔ Player shot generation and firing match pool exhaustion, laser ownership, power bands and key release (13819.3838ms)
+✔ Player shot updates match laser shutdown, collision interrupts, callbacks and animation clipping (4698.8546ms)
+✔ Player frame matches respawn, deathbomb, power loss, cancellation, bounds and complete update ordering (11166.4412ms)
+✔ Player option configuration matches all six shot types, power changes and full-power aura refresh (9999.8101ms)
+✔ Marisa option callbacks match trailing history, fixed anchors and focus animation interrupts (5241.1492ms)
+✔ Homing and laser callbacks match target rejection, turn rates, acceleration and target release (20439.1178ms)
+✔ Player profile loading matches missing resources, diagonal speeds, relocations and callback tables (132.8907ms)
+✔ Enemy bullet cancellation matches state transitions, offscreen timers, protection and faith conversion (13175.1173ms)
+✔ Bomb lifecycle matches special spell cards, activation, effect lifetime, conversion and penalty ordering (15203.0566ms)
+✔ Laser base and both concrete storage constructors match complete original object initialization (148.6739ms)
+✔ Laser manager matches allocation limits, linked updates, delayed deletion, regions and pause flags (248.2974ms)
+✔ Both laser types match parameter binding, growth, movement, timed phases, collision, animation and drawing (686.4007ms)
+✔ Laser behavior programs match command barriers, aim sentinels, timers, acceleration, repeated turns and reflected children (789.6929ms)
+✔ Laser cancellation matches sampled regions, edge rounding, retained segments, split parameters and faith conversion (28183.1872ms)
+✔ Laser manager area queries sum both kinds while excluding deleted lasers (142.7218ms)
+✔ Enemy bullet constructors and recycling preserve original unrelated fields and timer ownership (115.1062ms)
+✔ Enemy bullet frames and drawing lists match spawn transitions, graze, clipping, effects, layer order and pause flags (20104.4234ms)
+✔ Enemy bullet modifiers match acceleration, three turning modes, reflection, homing and wrap boundaries (850.5253ms)
+✔ Enemy bullet programs match modifier setup, conditional sequencing, nested emissions and cancellation cursor changes (43781.4607ms)
+✔ Enemy bullet emitters match all nine patterns, random streams, animation choice, pool exhaustion and wrap (20587.3249ms)
+✔ Enemy bullet region operations match rectangular clearing, protection, effect colors and corner-weighted queries (15422.0905ms)
+✔ Update chains match priority insertion, callback results, lock ordering, restarts and removal ownership (252.7433ms)
+✔ Projectile managers match resource failure, callback registration, pool resets and reverse destruction (2062.9489ms)
+✔ Enemy construction and teardown match retained script bytes, timers, animation children, targets and thread release order (264.3739ms)
+✔ Enemy manager spawning and updates match initialization frames, death palettes, cached links and destruction (226.5067ms)
+✔ ECL resource loading merges duplicate names, validates headers and preserves ignored callback results (124.6086ms)
+✔ Enemy ECL includes load animation slots and recursive scripts in original order, including failures (139.0716ms)
+✔ Enemy systems match startup, activation, full clearing and conditional resource teardown (146.8185ms)
+✔ ANM resources match linked headers, external textures, staged completion, waiting and release ownership (1386.7841ms)
+✔ ANM materialization matches texture branches, source tables and unsigned texture dimensions (138.3414ms)
+✔ Texture creation preserves format substitutions, embedded signed rectangles, ignored errors and surface edge colors (532.754ms)
+✔ Animation frame traversal preserves callbacks, cached successors, pool removal and stable draw layers (1026.1328ms)
+✔ ANM sprite records preserve UV division, source aliasing and float storage boundaries (134.4046ms)
+✔ Raster alpha inversion matches every 16-bit pixel and padded 32-bit and 4-bit alpha rows (232.0525ms)
+✔ Raster transparent edges match original neighbour selection, packed traversal and A4 color halving (434.5968ms)
+✔ Enemy clearing preserves protected objects, death effect order and the extra manager timer tick (174.39ms)
+✔ Enemy scene commands match spell name decoding, ignored argument reads, cancellation and section transitions (225.6008ms)
+✔ Enemy spawn commands match relative, absolute, mirrored, world-projected and boss-conditional creation (232.2549ms)
+✔ Enemy animation commands preserve slot replacement, script stack reads, visibility and coordinate modes (6983.8156ms)
+✔ Enemy projectile commands match emitter configuration, rank bands, argument side effects, lasers and cancellation (1141.3699ms)
+✔ Item, bomb and effect resources match original constructors, callback priorities, enabled flags, load failure and reverse geometry destruction (563.9883ms)
+✔ Game session resources match original creation, load failures, waits, new game, practice, retries, transitions and teardown (927.0362ms)
+✔ Game frame matches activation order, stage handoff, pause, demos, play time, faith decay and counters (5145.9834ms)
+✔ portable Japanese GDI matches native Windows pixels at all original sizes (5849.0261ms)
+✔ portable Chinese GDI matches native Windows pixels at all original sizes (11216.3662ms)
+✔ original ANSI text decoding matches Windows GDI for Japanese and Chinese, including truncated lines (473.3609ms)
+✔ Graphics matrix multiply, vector transforms and normalization match the original helper DLL (363.4476ms)
+✔ Graphics rotation, translation, camera view and perspective preserve extended rounding (491.9542ms)
+✔ Single-point projection matches optional matrices and unsigned viewports (268.9633ms)
+✔ Batch projection preserves its distinct viewport transform, grouping threshold, strides and aliasing (418.4843ms)
+✔ Graphics startup matches presentation settings, device fallbacks, float projection inputs and capability flags (401.5249ms)
+✔ GUI frame and rendering match boss names, lives, health, marker, countdown, faith and dialogue lifetime (17699.2456ms)
+✔ GUI construction, life icons and all notifications preserve original digits, leading zeros and animation ownership (1473.072ms)
+✔ GUI scores match rolling increments, score overflow, displayed high score, leading digits and normal/Extra extends (742.139ms)
+✔ GUI resource lifecycle preserves stage cache, callbacks, animation setup and cleanup on success and failure (1170.4456ms)
+✔ Clock preserves counter wrap, millisecond fallback, baseline correction, lock order and x87 storage rounding (320.582ms)
+✔ Win32 returns preserve flags, x87/SSE and stack data for aligned and unaligned stacks (181.4235ms)
+✔ Keyboard polling matches every virtual key and scan code, focus, HRESULTs, snapshots and release (420.0324ms)
+✔ Controller polling matches bindings, unsigned legacy ranges, signed dead zones and bounded reacquisition (428.8526ms)
+✔ Input profiles match original edge history, repeat cadence, counter wrap and first-profile compatibility polling (205.4393ms)
+✔ Input startup matches creation failures, keyboard cleanup, controller enumeration and axis ranges (271.5136ms)
+✔ cached CPU views survive WebAssembly memory growth and retain the complete thread context (150.4775ms)
+✔ accelerated decoder matches unmodified TH10 x86 for overlap, dictionary wrap and retained history (380.9285ms)
+✔ Recovered MIDI emits original browser MIDI bytes and releases callback buffers in both languages (788.4876ms)
+✔ MIDI lifecycle matches track parsing, variable integers, timers, file ownership and completion callbacks (344.5346ms)
+✔ MIDI events match original notes, running status, controllers, loop state and meta events (418.104ms)
+✔ MIDI SysEx buffers match completion, queue wrap and output failures (129.3898ms)
+✔ MIDI volume matches all channels, integer wrapping and floating-point modes (237.7426ms)
+✔ MIDI playback clock matches simultaneous tracks, tempo changes, fade completion and automatic rewind (437.44ms)
+✔ music read-ahead is ready before ReadFile crosses the next block, without duplicate requests (40.8403ms)
+✔ speculative failures do not fail current audio; needed data is retried and validated (4.8864ms)
+✔ track and loop entries stay cached while the moving window is evicted (1.5ms)
+✔ cache hints match every original PCM track offset and loop point (2.1064ms)
+✔ Music Room matches original incremental title/comment creation, locked tracks, scrolling, playback and exit (1886.725ms)
+✔ Music line parsing and title helpers match original CR/LF consumption, EOF behavior, state reset and animation ownership (272.3861ms)
+✔ C++ module only imports the existing guest memory and has no private allocator or runtime (2.4756ms)
+✔ reconstructed ANM reset matches original bytes, registers, stack and flags in both languages (497.016ms)
+✔ C++ pool scans agree with original iteration counts, skip no active object and stop inside bounds (232.0565ms)
+✔ C++ ANM list lookup matches original return, EDX, ECX and flags, including duplicate IDs and failed lookup (238.0485ms)
+✔ all 88 inlined list patches match their original x86 loop, every register and branch outcome (252.8023ms)
+✔ Browser native entry composes paged music, original input, touch movement, PCM events and persistent files without an executable (3917.8151ms)
+ℹ {"frames":2274,"requests":184,"audioEvents":88,"cachedBytes":44564480}
+✔ Native text pixel pipeline preserves original DLL output across atlas sizes, filters, rounding and color transforms (2625.0307ms)
+✔ Player resource construction, fixed speeds, hitboxes, retry cache, callbacks and activation match original instructions (1773.4769ms)
+✔ Player drawing and the optional faith bar match floor alignment, option callbacks and visibility gates (2335.3334ms)
+✔ Presentation matches device recovery, 33 default states, pending captures and unique screenshot filenames (356.8228ms)
+✔ rebuilt module has no emulator, WASI or JavaScript function imports (118.2262ms)
+✔ compiled image bindings reject a mismatched executable or language before execution (11.7187ms)
+✔ compiled original ANM reset preserves memory and all integer registers in both languages (575.8328ms)
+✔ compiled linked-list lookup follows the original first-match and failure paths (308.5849ms)
+✔ compiled D3DX vector normalization matches original DLL float bytes (370.4488ms)
+✔ compiled D3DX transforms and projections match the original selected SIMD paths (370.82ms)
+✔ C++ D3DX image and dialogue resampling matches untouched original DLL pixels (1612.8016ms)
+✔ Replay file loading matches disk/archive sources, format rejection, both decryption passes and stage reader relocation (653.9402ms)
+✔ Replay input blocks, held key edges, rollover, playback EOF, fast-forward, FPS display and stage snapshots match original instructions (4529.135ms)
+✔ Replay block initialization and the exact input/FPS capacity boundaries match original instructions (310.9386ms)
+✔ Replay creation, playback configuration, callback priorities, preview mode, failed load and reverse destruction match original instructions (1235.58ms)
+✔ Replay saving matches original stream layout, compression, metadata formatting, repeated saves and partial-write cleanup (5800.0524ms)
+✔ Archive lookup and extraction match cipher selection, allocation ownership, failures and stream callback mutations (194.6101ms)
+✔ Resource encryption and decryption match original block, tail, key rollover and processing-limit rules (174.9884ms)
+✔ C++ resource decoding matches original retained dictionary, bit order and overlapping back references (182.1643ms)
+✔ Resource compression produces identical bytes and search trees across ties, long matches and dictionary wrap (1826.2741ms)
+✔ Resource files match archive paths, external short reads, write failures and retained lock/handle state (255.6906ms)
+✔ Result drawing matches original replay rows, ranking rows, special keyboard glyphs, selection colors and animated positions (1868.3815ms)
+✔ Result and pause flows match original transitions, simultaneous keys, rankings, naming, replay slots and timer boundaries (6009.1719ms)
+✔ Result interface lifecycle matches disabled callback priorities, activation, replay ownership and animation cleanup (258.25ms)
+✔ D3DX cdecl floor returns a double in x87 ST0 without changing the caller stack (148.562ms)
+FONT [[32,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[34,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[36,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[38,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[40,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[42,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[44,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[46,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[48,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[50,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[52,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[54,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[56,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[58,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+FONT [[60,0,0,0,400,0,0,0,128,0,0,4,17],"ＭＳ ゴシック"]
+✔ all original sound effects reach DirectSound with unchanged PCM and sample rates (1583.0718ms)
+✔ World camera selection preserves callback mutations and final viewport (188.471ms)
+✔ Hint recording preserves per-stage history, bounded text and section time (145.169ms)
+✔ Caution recording ages previous hints and preserves signed timer wrapping (150.8915ms)
+✔ Score defaults, spell indices, randomized settings, chunk checksums, load/save and resource lifetimes match original instructions (17965.088ms)
+✔ Score popups match original pool rollover, digit formatting, timed movement, distance opacity, fading sprites and lifecycle (11276.9619ms)
+✔ Screen effects match all nine kinds, paused fades, dim release, repeated flash and both RNG sequences (1620.0262ms)
+✔ Screen rectangle submissions match four corner colors, GPU state order and texture cache invalidation (179.1059ms)
+✔ Stage transitions preserve timers, geometry, animation deletion and overlay creation order (363.7672ms)
+✔ Screenshot matches full 640×480 BMP pixels, signed surface pitch, allocation failures, file writes and worker cleanup (1513.5584ms)
+✔ Sound buffers match channel selection, playing queries, restore/retry, play, pause, resume and combined errors (702.2346ms)
+✔ Music volume and all fade modes match original arithmetic, frame wrap and callback changes (971.7282ms)
+✔ PCM filling and streaming match original loop points, silence, write safety, restore and cursor wrap (718.171ms)
+✔ Sound resource ownership matches constructors, partial release, notification positions and allocation failures (243.0129ms)
+✔ Music stream factories match file and cached sources, descriptors, notifications and partial failures (238.0271ms)
+✔ Spell lifecycle, seven stage backgrounds, bonus decay, records and animation ordering match original code (4455.9878ms)
+✔ Hint text matches original trimming, LF-first line scanning, comments, final lines, split values and table lookup (636.4751ms)
+✔ Stage hints match display queues, section timers, three sizes, alignments, lifetime, alpha proximity and integer wrap (2347.683ms)
+✔ Stage hint resources match constructors, file grammar, stage limits, retained copies, writes and shutdown (633.174ms)
+✔ Capture release matches all slots, partial ownership and callbacks that replace a following surface (544.9425ms)
+✔ Fog interpolation preserves packed colors, intermediate stores, Hermite, motion modes and timer boundaries (603.1996ms)
+✔ STD instructions match scheduling, jumps, camera curves, fog, stop, unknown opcodes and embedded scripts (1343.3598ms)
+✔ Stage frames and restart match object activation, primitive indices, pause gates, effect rate and camera copy (193.0222ms)
+✔ Stage rendering matches corner culling, signed layers, primitive transforms, both passes, fades and fog (910.7899ms)
+✔ Stage resources match source caching, relocation, callback priorities, partial failure and release ownership (292.5372ms)
+✔ Startup identity matches mutex, executable names and shortcut launch flags (297.7234ms)
+✔ Display dialog matches checkbox and button actions (240.8633ms)
+✔ Shell shortcut resolution matches COM failures and ownership (178.3383ms)
+✔ Startup resources match original construction, workers, load failures, music configuration and ordered release (954.3328ms)
+✔ Startup callbacks match deferred opening/loading animations, title activation and frame wrap (353.0257ms)
+✔ Startup utilities match executable checksum boundaries, joystick fallback and keyboard transition reset (301.0383ms)
+✔ Surface stretch copies preserve offsets, reject unsupported device operations and retain D3DX software filtering (262.6464ms)
+✔ transparent edge acceleration matches original JP and Chinese instructions byte for byte (611.6056ms)
+✔ text alpha loop matches JP/Chinese pixels, integer registers, flags and FPU state (549.4636ms)
+✔ New and recycled workers initialize before their creator resumes (474.3223ms)
+✔ A C++ thread creation yields after its callback returns without nesting the child on its stack (218.8012ms)
+✔ Clear drawing matches original ranking emphasis, keyboard, save-row interpolation and retained text state (6172.6414ms)
+✔ Clear menus match original ranking, name keyboard, save replacement, timestamp and cleanup order (10457.1209ms)
+✔ Key configuration matches original button scanning, duplicate swaps, displayed digits, reset, commit and cancel (5098.7918ms)
+✔ Title frame dispatch matches original return paths, idle demos, drawing and timer behavior (7590.0684ms)
+✔ Title prompt and main menu match original timing, all selections, Extra unlocks, practice flag and cursor restoration (1792.6227ms)
+✔ Options match original audio curve, number visibility, display mode, preview sounds, reset and exit (7452.1372ms)
+✔ Replay drawing matches original metadata, fractional transition, disabled stages and next-stage scores (3317.4201ms)
+✔ Replay menu matches original file search, preview ownership, stage exclusions, fades and return state (3493.0774ms)
+✔ Background resource worker matches original start, suspend, timeout, stop and handle cleanup (200.5733ms)
+✔ Title resources match original callback order, loading failures, startup wait, ownership and cleanup (271.3072ms)
+✔ Score table matches original dates, rank gradient, signed digits, slowdown, play counts and time (2560.0201ms)
+✔ Score room matches original difficulty/shot navigation, spell pages, discovery colors, unlock code and exit (8253.1088ms)
+✔ Difficulty, character, shot and practice selection match original locks, input, animation, fades and cursor stacks (8237.4917ms)
+✔ Practice stage drawing matches original scores, locks, highlight colors and confirmation blink (2696.015ms)
+✔ relative dragging clamps the original movement area and stops without oscillating or coasting (1.9465ms)
+✔ auto fire and drag stop in original pause menus, dialogue, replays and after death (0.7254ms)
+✔ saved mobile preferences accept old/malformed values without placing controls offscreen (0.3597ms)
+✔ releasing one finger does not release another finger or a held physical key (2.6069ms)
+✔ a rotating or cancelled touch releases all directions and auto fire (0.5961ms)
+✔ direction pad has a neutral center and eight stable movement sectors (0.4144ms)
+✔ Triangle filter coefficients match original weights, wrapping, clipped boundaries and rounding (1845.2703ms)
+✔ Wave reader matches file and memory sources, loop points, short reads, cursor overlap and resource ownership (557.6343ms)
+✔ Window creation matches class registration, frame metrics, focus messages and callback changes (186.6604ms)
+✔ Window messages match focus, cursor visibility, shutdown flags and MIDI completion forwarding (290.6659ms)
+ℹ tests 307
+ℹ suites 0
+ℹ pass 307
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 845654.029

@@ -1,0 +1,10 @@
+✔ Independent Extra stage runs its real script through the final spell and clear results with test-only invulnerability (134835.7064ms)
+ℹ {"assisted":true,"frames":35038,"draws":2864265}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135145.9104

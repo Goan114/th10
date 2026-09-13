@@ -1,0 +1,70 @@
+{
+  "manifest": {
+    "game": "th10",
+    "version": "2.0.0-native",
+    "execution": {
+      "kind": "cpp-game-logic",
+      "module": "th10-game.wasm",
+      "bytes": 764480,
+      "sha256": "22d167fdcc3b72d06489c31d32d714d5467ffb6c5b50d86a0433e8b2ec1a7b61",
+      "sourceSha256": "5d67f65a27ba7c00d4e99e9907d6f00fd6287c478685cbf715069cb2bc6dda06"
+    },
+    "variants": {
+      "jp": {
+        "files": [
+          "th10.dat"
+        ],
+        "hashes": {
+          "th10.dat": "1fb1d0ffe34115f563f5feb43755c0feee2315b0ac2b32e2f9e84c81e9433bea"
+        }
+      },
+      "chs": {
+        "files": [
+          "th10c.dat"
+        ],
+        "hashes": {
+          "th10c.dat": "b6843d5fb63fb5f712ecf19dfbd74c1abaea8f8cfb23c8f490aaa7dad86b2636"
+        }
+      }
+    },
+    "music": {
+      "size": 403789620,
+      "blockSize": 262144,
+      "chunked": true,
+      "sha256": "f4924d62a0d5e7d7c876064cbee1d3e43fbd29a724c7c34f9e0d17516c2c22a4"
+    }
+  },
+  "runtime": [
+    "runtime/assets.mjs",
+    "runtime/audio-bridge.mjs",
+    "runtime/audio-mixer.mjs",
+    "runtime/audio-worklet.mjs",
+    "runtime/browser-main.mjs",
+    "runtime/com.mjs",
+    "runtime/d3d9.mjs",
+    "runtime/dsound.mjs",
+    "runtime/encoding.mjs",
+    "runtime/gdi-fonts.mjs",
+    "runtime/input.mjs",
+    "runtime/interfaces.mjs",
+    "runtime/keyboard-state.mjs",
+    "runtime/music-layout.mjs",
+    "runtime/native-audio.mjs",
+    "runtime/native-file-store.mjs",
+    "runtime/native-fonts.mjs",
+    "runtime/native-game.mjs",
+    "runtime/native-graphics.mjs",
+    "runtime/native-input-state.mjs",
+    "runtime/native-memory.mjs",
+    "runtime/native-music-window.mjs",
+    "runtime/native-objects.mjs",
+    "runtime/native-platform.mjs",
+    "runtime/native-time.mjs",
+    "runtime/native-worker.mjs",
+    "runtime/storage.mjs",
+    "runtime/touch-controls.mjs",
+    "runtime/touch-driver.mjs",
+    "runtime/webgl.mjs"
+  ],
+  "sourceFiles": 404
+}

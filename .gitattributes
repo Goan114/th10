@@ -1,0 +1,2 @@
+# Preserve source and asset bytes across checkouts: source hashes are byte based.
+* -text

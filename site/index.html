@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="th10-engine" content="native">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080c08">
+<title>东方风神录 ～ Mountain of Faith</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#080c08;color:#d4dccb;font:14px system-ui}body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px}button,select,input{font:inherit}button,select{min-height:40px;padding:8px 12px;border:1px solid #596b44;background:#1e2c19;color:#e5eddc;border-radius:6px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,summary:focus-visible{outline:2px solid #d6ee94;outline-offset:2px}button{touch-action:manipulation}p{margin:0;white-space:pre-wrap}nav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}[hidden]{display:none!important}
+#game-shell{--view-width:min(960px,96vw,calc((100dvh - 176px)*4/3));display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%;background:#080c08}#game-stage{position:relative;max-width:100%;width:var(--view-width)}#game-view{position:relative;width:var(--view-width);max-width:100%;margin:auto}#screen{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#000;outline:none;touch-action:none}#toolbar{max-width:100%;padding:0 4px}#status{text-align:center;font-variant-numeric:tabular-nums;max-height:64px;overflow:auto;overflow-wrap:anywhere}#resume{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 24px;min-width:180px;background:#1e2c19f5;border:2px solid #d6ee94;z-index:8}#help{width:min(960px,100%);color:#b3bda6}#help p{margin:12px 0;line-height:1.7}#help summary{cursor:pointer;min-height:32px}#help input{max-width:100%}.keyboard-help{line-height:1.6}
+#game-shell:fullscreen,#game-shell.expanded{width:100%;max-width:none;height:100dvh;justify-content:center;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));--view-width:min(calc(100vw - 16px),calc((100dvh - 90px)*4/3))}#game-shell.expanded{position:fixed;inset:0;z-index:10}body:has(#game-shell.expanded){overflow:hidden}
+</style>
+<link rel="stylesheet" href="/runtime/touch-style.css?v=1.0.5">
+</head>
+<body>
+<main id="game-shell" aria-label="风神录游戏与操作区">
+  <div id="game-stage">
+    <div id="game-view"><canvas id="screen" width="640" height="480" tabindex="0" aria-label="东方风神录游戏画面"></canvas><button id="resume" hidden>点击继续游戏</button></div>
+    <div id="touch-controls" hidden>
+      <div id="direction-pad" data-control role="group" aria-label="八方向移动，按住并滑动" hidden><span class="pad-up">▲</span><span class="pad-left">◀</span><span class="pad-right">▶</span><span class="pad-down">▼</span><i class="pad-stick"></i></div>
+      <button id="touch-shot" data-control data-keys="KeyZ" aria-pressed="false" disabled>确认</button>
+      <button id="touch-bomb" data-control data-keys="KeyX" disabled>灵击<br>返回</button>
+      <button id="touch-focus" data-control data-keys="ShiftLeft" aria-pressed="false" disabled>低速</button>
+      <button id="touch-pause" data-control data-keys="Escape" disabled>暂停</button>
+      <button id="touch-skip" data-control data-keys="ControlLeft" disabled>快进</button>
+      <p id="touch-hint">滑动选择 · 点按确认 · 双指点按返回</p>
+    </div>
+    <div id="touch-editor" hidden><span>拖动按键调整位置</span><label>大小 <input id="touch-size" type="range" min="0.6" max="1.8" step="0.05" value="1"></label><button id="touch-layout-reset">重置布局</button><button id="touch-edit-done">保存布局</button></div>
+  </div>
+  <nav id="toolbar" aria-label="游戏选项"><select id="language" aria-label="游戏语言"><option value="jp">日文原版</option><option value="chs">简体汉化版</option></select><button id="start">开始游戏</button><button id="fullscreen">全屏</button><button id="touch-configure" hidden>触控设置</button><button id="touch-toggle" aria-pressed="false">显示触控</button><button id="quit" disabled>退出并保存</button><span class="keyboard-help">方向键移动 · Z 射击 / 确认 · Shift 低速 · X 灵击 / 返回 · Esc 暂停</span></nav>
+  <p id="status" role="status">东方风神录 日文版 1.00a · 点击开始游戏</p>
+  <dialog id="touch-settings" aria-labelledby="touch-settings-title">
+    <form method="dialog"><h2 id="touch-settings-title">触控设置</h2><button id="touch-settings-close" aria-label="关闭触控设置">关闭</button></form>
+    <label>移动方式 <select id="touch-movement"><option value="drag">画面拖动</option><option value="joystick">八方向摇杆</option></select></label>
+    <label>低速操作 <select id="touch-focus-mode"><option value="hold">按住低速键</option><option value="toggle">点按切换低速</option><option value="two-finger">第二根手指按住低速</option></select></label>
+    <label for="touch-sensitivity">拖动灵敏度 <output id="touch-sensitivity-value">100%</output></label><input id="touch-sensitivity" type="range" min="50" max="300" step="10" value="100">
+    <button id="touch-edit">调整按键位置与大小</button><p>横屏、竖屏分别记住布局。画面拖动保留原版移动速度；按住低速时，拖动也会减速。</p>
+  </dialog>
+</main>
+<details id="help"><summary>存档、录像与操作说明</summary><p>手机默认使用画面拖动，并在战斗中自动射击。点“射击 开”可以关闭连射。菜单中滑动选择、点按确认、双指点按返回；对话中点按推进，长按快进。触控设置中可选择摇杆、调整低速操作、灵敏度和按键布局。
+全屏会保留触控。切换应用后，返回并点击“继续游戏”。
+进度保存在当前浏览器、当前网址，日文与简体版分别保存。更换设备或网址前，请导出备份。支持原版存档和 .rpy 录像。结束时点击“退出并保存”，等待退出后再关闭页面。
+键盘：方向键移动，Z 射击 / 确认，Shift 低速，X 灵击 / 返回，Esc 暂停，Ctrl 快进对话。触控使用默认键位；若修改了键位，请在游戏 Option 中恢复默认。支持手柄。</p><nav><button id="export">导出存档备份</button><label>导入 <input id="import" type="file" accept=".rpy,.dat,.cfg,.json" multiple></label></nav></details>
+<script type="module" src="/runtime/browser-main.mjs"></script>
+</body>
+</html>
