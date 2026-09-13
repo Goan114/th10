@@ -1,5 +1,9 @@
 # Touhou Fuujinroku ~ Mountain of Faith
 
+This `th10-eagler` checkout adapts the C++/WASI game to the existing Eagler Touhou
+Launcher. See [Eagler build and integration](docs/EAGLER_ADAPTATION.md). The
+upstream standalone page below is reference documentation, not the Eagler UI.
+
 [![QQ Group](https://img.shields.io/badge/QQ_Group-Join-12B7F5?logo=tencentqq&logoColor=white)](https://qm.qq.com/q/kcK8yRmd6o)
 
 [English](README.md) | [简体中文](README.zh-CN.md)

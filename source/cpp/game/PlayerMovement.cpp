@@ -34,6 +34,7 @@ i32 Player::move(PlayerMovementEnvironment& env){
     case 1:y=negate(straight);break;case 2:y=straight;break;case 3:x=negate(straight);break;case 4:x=straight;break;
     case 5:x=y=negate(diagonal);break;case 6:x=diagonal;y=negate(diagonal);break;case 7:x=negate(diagonal);y=diagonal;break;case 8:x=y=diagonal;break;
     }
+    env.adapt_movement(*this,x,y);
     i32 animation_index=-1;
     if(x<0&&input_velocity.x>=0)animation_index=1;
     else if(x>0&&input_velocity.x<=0)animation_index=3;

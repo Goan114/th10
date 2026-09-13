@@ -71,7 +71,12 @@ export class WebGLD3D9 {
     this.shader=shader;this.vertexShader=shader(gl.VERTEX_SHADER,vertexSource);this.programs=new Map();this.program=gl.createProgram();gl.attachShader(this.program,this.vertexShader);gl.attachShader(this.program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(this.program));
     gl.useProgram(this.program);this.uniforms=new Map();for(let i=0;i<gl.getProgramParameter(this.program,gl.ACTIVE_UNIFORMS);i++){const u=gl.getActiveUniform(this.program,i);this.uniforms.set(u.name,gl.getUniformLocation(this.program,u.name));}
     this.vertices=gl.createBuffer();this.indices=gl.createBuffer();this.instanceMatrices=gl.createBuffer();this.surfaces=new Map();this.depths=new Map();d3d.onFlush=()=>this.flush();
+    // queue consumes borrowed vertices before returning; only instanced geometry
+    // retained across calls needs a private copy. Other Direct3D consumers keep
+    // the original owned snapshot contract.
+    d3d.borrowDrawVertices=true;
     d3d.onDraw=draw=>this.queue(draw);d3d.onClear=clear=>{this.flush();this.clear(clear);};d3d.onCopy=(src,rect,dst,point)=>{this.flush();return this.copy(src,rect,dst,point);};d3d.onPresent=device=>{this.flush();this.present(device);};d3d.onReadSurface=s=>{this.flush();this.readSurface(s);};d3d.onRelease=s=>{this.flush();this.release(s);};this.batchEnabled=true;this.stats={calls:0,batches:0,uploadBytes:0,readBytes:0,ms:0};
+    this.stateValues=new Map();this.uniformValues=new Map();this.activeProgram=this.program;
     canvas.addEventListener?.('webglcontextlost',()=>{this.contextLost=true;});this.debugErrors=false;
     for(const name of ['onDraw','onClear','onCopy','onPresent','onReadSurface','onRelease']){const callback=d3d[name];d3d[name]=(...args)=>{const start=performance.now();try{return callback(...args);}finally{this.stats.ms+=performance.now()-start;}};}
   }
@@ -83,7 +88,7 @@ export class WebGLD3D9 {
     if(d.fvf===0x102&&d.stride===20&&d.primitive===5&&d.count===2&&d.transforms.has(256)){
       const batch=this.batch;
       if(batch?.worlds&&this.sameState(batch.draw,d,true)&&batch.draw.vertices.every((v,i)=>v===d.vertices[i]))batch.worlds.push(d);
-      else{this.flush();this.batch={draw:d,worlds:[d]};}
+      else{this.flush();this.batch={draw:{...d,vertices:d.vertices.slice()},worlds:[d]};}
       if(this.batch.worlds.length>=1024)this.flush();return;
     }
     if(this.batch?.worlds)this.flush();
@@ -114,8 +119,28 @@ export class WebGLD3D9 {
       this.selectProgram({texture,states:new Map([[15,1],[28,fog],[25,7]]),stages:new Map([[1,op],[4,op],[2,arg1],[3,arg2],[5,arg1],[6,arg2]])});
     }
   }
-  set(name,type,...value){this.gl[type](this.uniforms.get(name),...value);}
-  selectProgram(d){const state=(n,def=0)=>d.states.get(n)??def,stage=(n,def)=>d.stages.get(n)??def,values=[!!d.texture,!!state(15),!!state(28),stage(1,4),stage(4,2),stage(2,2),stage(3,1),stage(5,2),stage(6,1),state(25,8)],key=values.join(',');let variant=this.programs.get(key);const gl=this.gl;if(!variant){const names=['hasTexture','alphaTest','fogEnabled','colorOp','alphaOp','colorArg1','colorArg2','alphaArg1','alphaArg2','alphaFunc'];let source=fragment.replace('uniform bool hasTexture,alphaTest,fogEnabled;','').replace('uniform int colorOp,alphaOp,colorArg1,colorArg2,alphaArg1,alphaArg2,alphaFunc;','');source=source.replace('precision highp float;','precision highp float;\n'+names.map((name,i)=>`const ${i<3?'bool':'int'} ${name}=${values[i]};`).join('\n'));const program=gl.createProgram();gl.attachShader(program,this.vertexShader);gl.attachShader(program,this.shader(gl.FRAGMENT_SHADER,source));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));const uniforms=new Map();for(let i=0;i<gl.getProgramParameter(program,gl.ACTIVE_UNIFORMS);i++){const u=gl.getActiveUniform(program,i);uniforms.set(u.name,gl.getUniformLocation(program,u.name));}variant={program,uniforms};this.programs.set(key,variant);}this.program=variant.program;this.uniforms=variant.uniforms;gl.useProgram(this.program);}
+  set(name,type,...value){
+    const location=this.uniforms.get(name);if(location==null)return;
+    let cache=this.uniformValues.get(this.program);if(!cache){cache=new Map();this.uniformValues.set(this.program,cache);}
+    this.cachedCall(cache,name,type,[location,...value],value);
+  }
+  // Array uniforms are mutable views into snapshots. Compare their contents
+  // and own the cached values rather than retaining a caller's live buffer.
+  cachedCall(cache,key,type,args,values=args){
+    const previous=cache.get(key);let unchanged=previous?.length===values.length;
+    for(let i=0;unchanged&&i<values.length;i++){
+      const value=values[i],before=previous[i];
+      if(ArrayBuffer.isView(value)||Array.isArray(value)){
+        unchanged=before?.length===value.length;
+        for(let j=0;unchanged&&j<value.length;j++)unchanged=Object.is(before[j],value[j]);
+      }else unchanged=Object.is(before,value);
+    }
+    if(unchanged)return;
+    this.gl[type](...args);
+    cache.set(key,values.map(v=>ArrayBuffer.isView(v)||Array.isArray(v)?Array.from(v):v));
+  }
+  state(type,...values){this.cachedCall(this.stateValues,type,type,values);}
+  selectProgram(d){const state=(n,def=0)=>d.states.get(n)??def,stage=(n,def)=>d.stages.get(n)??def,values=[!!d.texture,!!state(15),!!state(28),stage(1,4),stage(4,2),stage(2,2),stage(3,1),stage(5,2),stage(6,1),state(25,8)],key=values.join(',');let variant=this.programs.get(key);const gl=this.gl;if(!variant){const names=['hasTexture','alphaTest','fogEnabled','colorOp','alphaOp','colorArg1','colorArg2','alphaArg1','alphaArg2','alphaFunc'];let source=fragment.replace('uniform bool hasTexture,alphaTest,fogEnabled;','').replace('uniform int colorOp,alphaOp,colorArg1,colorArg2,alphaArg1,alphaArg2,alphaFunc;','');source=source.replace('precision highp float;','precision highp float;\n'+names.map((name,i)=>`const ${i<3?'bool':'int'} ${name}=${values[i]};`).join('\n'));const program=gl.createProgram();gl.attachShader(program,this.vertexShader);gl.attachShader(program,this.shader(gl.FRAGMENT_SHADER,source));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));const uniforms=new Map();for(let i=0;i<gl.getProgramParameter(program,gl.ACTIVE_UNIFORMS);i++){const u=gl.getActiveUniform(program,i);uniforms.set(u.name,gl.getUniformLocation(program,u.name));}variant={program,uniforms};this.programs.set(key,variant);}this.program=variant.program;this.uniforms=variant.uniforms;if(this.activeProgram!==this.program){gl.useProgram(this.program);this.activeProgram=this.program;}}
   pixels(s){
     const input=this.m.view(s.data,s.size),out=new Uint8Array(s.width*s.height*4),v=new DataView(input.buffer,input.byteOffset,input.byteLength);
     for(let y=0;y<s.height;y++)for(let x=0;x<s.width;x++){
@@ -149,7 +174,7 @@ export class WebGLD3D9 {
     }
     return gpu;
   }
-  target(address,depthAddress=0){const gl=this.gl,s=this.d3d.com.get(address),gpu=this.surface(s);let depth=this.depths.get(depthAddress);if(depthAddress&&!depth){const d=this.d3d.com.get(depthAddress);depth={buffer:gl.createRenderbuffer(),stencil:d.format===75};gl.bindRenderbuffer(gl.RENDERBUFFER,depth.buffer);gl.renderbufferStorage(gl.RENDERBUFFER,depth.stencil?gl.DEPTH24_STENCIL8:d.format===80?gl.DEPTH_COMPONENT16:gl.DEPTH_COMPONENT24,d.width,d.height);this.depths.set(depthAddress,depth);}gl.bindFramebuffer(gl.FRAMEBUFFER,gpu.framebuffer);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depth?.buffer??null);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.STENCIL_ATTACHMENT,gl.RENDERBUFFER,depth?.stencil?depth.buffer:null);return {s,gpu};}
+  target(address,depthAddress=0){const gl=this.gl,s=this.d3d.com.get(address),gpu=this.surface(s);let depth=this.depths.get(depthAddress);if(depthAddress&&!depth){const d=this.d3d.com.get(depthAddress);depth={buffer:gl.createRenderbuffer(),stencil:d.format===75};gl.bindRenderbuffer(gl.RENDERBUFFER,depth.buffer);gl.renderbufferStorage(gl.RENDERBUFFER,depth.stencil?gl.DEPTH24_STENCIL8:d.format===80?gl.DEPTH_COMPONENT16:gl.DEPTH_COMPONENT24,d.width,d.height);this.depths.set(depthAddress,depth);}gl.bindFramebuffer(gl.FRAMEBUFFER,gpu.framebuffer);const depthBuffer=depth?.buffer??null,stencilBuffer=depth?.stencil?depth.buffer:null;if(gpu.depthBuffer!==depthBuffer){gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depthBuffer);gpu.depthBuffer=depthBuffer;}if(gpu.stencilBuffer!==stencilBuffer){gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.STENCIL_ATTACHMENT,gl.RENDERBUFFER,stencilBuffer);gpu.stencilBuffer=stencilBuffer;}return {s,gpu};}
   readSurface(s){const gpu=this.surfaces.get(s.address);if(!gpu?.rendered)return;this.stats.readBytes+=s.size;const gl=this.gl,pixels=new Uint8Array(s.width*s.height*4),output=this.m.view(s.data,s.size),v=new DataView(output.buffer,output.byteOffset,output.byteLength);gl.bindFramebuffer(gl.FRAMEBUFFER,gpu.framebuffer);gl.readPixels(0,0,s.width,s.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
     for(let y=0;y<s.height;y++)for(let x=0;x<s.width;x++){const p=(y*s.width+x)*4,r=pixels[p],g=pixels[p+1],b=pixels[p+2],a=pixels[p+3];
       if(s.format===21||s.format===22){const i=y*s.pitch+x*4;output[i]=b;output[i+1]=g;output[i+2]=r;output[i+3]=s.format===21?a:255;}
@@ -164,7 +189,7 @@ export class WebGLD3D9 {
   draw(d){this.stats.batches++;const gl=this.gl,state=(n,def=0)=>d.states.get(n)??def,stage=(n,def=0)=>d.stages.get(n)??def;
     state(26)?gl.enable(gl.DITHER):gl.disable(gl.DITHER);
     const tex=d.texture?this.d3d.com.get(d.texture).surface:null,texture=tex?this.surface(tex):null,{s,gpu}=this.target(d.target,d.depthTarget),vp=new DataView(d.viewport.buffer,d.viewport.byteOffset);
-    const v=[0,4,8,12].map(o=>vp.getUint32(o,true));gl.viewport(v[0],v[1],v[2],v[3]);gl.depthRange(vp.getFloat32(16,true),vp.getFloat32(20,true));this.selectProgram(d);
+    const v=[0,4,8,12].map(o=>vp.getUint32(o,true));this.state('viewport',v[0],v[1],v[2],v[3]);this.state('depthRange',vp.getFloat32(16,true),vp.getFloat32(20,true));this.selectProgram(d);
     this.set('viewport','uniform4fv',v);const transformed=(d.fvf&14)===4;this.set('transformed','uniform1i',transformed?1:0);this.set('textureTransform','uniform1i',stage(24)?1:0);
     this.set('instanced','uniform1i',d.instanceWorlds?1:0);
     for(const [name,key] of [['world',256],['view',2],['projection',3],['textureMatrix',16]]){const b=d.transforms.get(key);this.set(name,'uniformMatrix4fv',false,b?new Float32Array(b.buffer,b.byteOffset,16):IDENTITY);}
@@ -172,7 +197,7 @@ export class WebGLD3D9 {
     this.set('hasTexture','uniform1i',texture?1:0);this.set('factor','uniform4fv',color(state(60,0xffffffff)));
     for(const [name,key,def] of [['colorOp',1,4],['colorArg1',2,2],['colorArg2',3,1],['alphaOp',4,2],['alphaArg1',5,2],['alphaArg2',6,1]]){const val=stage(key,def);if(name.endsWith('Op')&&(val<1||val>16))throw new Error('Unsupported texture op '+val);this.set(name,'uniform1i',val);}
     this.set('alphaTest','uniform1i',state(15));this.set('alphaRef','uniform1f',state(24)/255);this.set('alphaFunc','uniform1i',state(25,8));this.set('depth16','uniform1i',state(7)&&d.depthTarget&&this.d3d.com.get(d.depthTarget).format===80?1:0);
-    if(texture){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture.texture);const address=n=>[0,gl.REPEAT,gl.MIRRORED_REPEAT,gl.CLAMP_TO_EDGE,gl.CLAMP_TO_EDGE,gl.CLAMP_TO_EDGE][n]??gl.REPEAT;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,address(stage(13,1)));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,address(stage(14,1)));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,stage(17)===1?gl.NEAREST:gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,stage(16)===1?gl.NEAREST:gl.LINEAR);}
+    if(texture){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture.texture);const address=n=>[0,gl.REPEAT,gl.MIRRORED_REPEAT,gl.CLAMP_TO_EDGE,gl.CLAMP_TO_EDGE,gl.CLAMP_TO_EDGE][n]??gl.REPEAT;const parameters=texture.parameters??=new Map();for(const [key,value] of [[gl.TEXTURE_WRAP_S,address(stage(13,1))],[gl.TEXTURE_WRAP_T,address(stage(14,1))],[gl.TEXTURE_MIN_FILTER,stage(17)===1?gl.NEAREST:gl.LINEAR],[gl.TEXTURE_MAG_FILTER,stage(16)===1?gl.NEAREST:gl.LINEAR]]){if(parameters.get(key)!==value){gl.texParameteri(gl.TEXTURE_2D,key,value);parameters.set(key,value);}}}
     state(7)?gl.enable(gl.DEPTH_TEST):gl.disable(gl.DEPTH_TEST);gl.depthMask(!!state(14,1));const cmp=[0,gl.NEVER,gl.LESS,gl.EQUAL,gl.LEQUAL,gl.GREATER,gl.NOTEQUAL,gl.GEQUAL,gl.ALWAYS];gl.depthFunc(cmp[state(23,4)]);
     if(state(27)){gl.enable(gl.BLEND);const blend=[0,gl.ZERO,gl.ONE,gl.SRC_COLOR,gl.ONE_MINUS_SRC_COLOR,gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.DST_ALPHA,gl.ONE_MINUS_DST_ALPHA,gl.DST_COLOR,gl.ONE_MINUS_DST_COLOR,gl.SRC_ALPHA_SATURATE];gl.blendFunc(blend[state(19,2)],blend[state(20,1)]);gl.blendEquation([0,gl.FUNC_ADD,gl.FUNC_SUBTRACT,gl.FUNC_REVERSE_SUBTRACT,gl.MIN,gl.MAX][state(171,1)]);}else gl.disable(gl.BLEND);
     if(state(22,1)!==1){gl.enable(gl.CULL_FACE);gl.frontFace(gl.CW);gl.cullFace(state(22)===2?gl.BACK:gl.FRONT);}else gl.disable(gl.CULL_FACE);

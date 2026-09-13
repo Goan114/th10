@@ -21,6 +21,7 @@ AUDIO_EXPORT("audio_create") browser::Audio* audio_create(browser::FileSystem* f
 AUDIO_EXPORT("audio_destroy") void audio_destroy(browser::Audio* audio){if(audio){audio->~Audio();std::free(audio);}}
 AUDIO_EXPORT("audio_initialize") i32 audio_initialize(browser::Audio* audio,u32 window){return audio->initialize(window);}
 AUDIO_EXPORT("audio_manager") AudioManager* audio_manager(browser::Audio* audio){return &audio->manager;}
+AUDIO_EXPORT("audio_managed_music") void audio_managed_music(browser::Audio* audio,i32 enabled){audio->managed_music=enabled!=0;}
 AUDIO_EXPORT("audio_configure") void audio_configure(browser::Audio* audio,u32 display,u32 music,u32 effects,i32 music_volume,i32 effects_volume){audio->display_flags=display;audio->music_enabled=music;audio->effects_enabled=effects;audio->configured_music=music_volume;audio->configured_effects=effects_volume;}
 AUDIO_EXPORT("audio_formats") i32 audio_formats(browser::Audio* audio,const char* name){return audio->load_formats(name);}
 AUDIO_EXPORT("audio_start_file") i32 audio_start_file(browser::Audio* audio,const char* name){return AudioResources{audio->manager,audio->resources}.start_file_music(name);}

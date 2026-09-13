@@ -8,6 +8,11 @@
   "scripts": {
     "start": "node scripts/serve.mjs --dist --dist-dir site --port 8090",
     "build": "node scripts/build.mjs",
+    "build:eagler": "node scripts/build-eagler.mjs",
+    "prepare:eagler": "node scripts/prepare-eagler-content.mjs",
+    "test:touch": "node --test scripts/test-eagler-touch.mjs",
+    "test:renderer": "node --test scripts/test-eagler-renderer.mjs",
+    "test:music": "node --test scripts/test-eagler-music.mjs",
     "verify": "node scripts/verify.mjs",
     "verify:pages": "node scripts/verify-pages.mjs"
   },

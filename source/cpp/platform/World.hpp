@@ -2,6 +2,7 @@
 #include "Hud.hpp"
 #include "Backgrounds.hpp"
 #include "ReplayFiles.hpp"
+#include "EaglerMovement.hpp"
 #include "../game/GameSessionResources.hpp"
 #include "../game/BulletEmitter.hpp"
 #include "../game/LaserManager.hpp"
@@ -18,6 +19,8 @@ struct World final:HudActions,CallbackReceiver {
     Preview* previews=nullptr;
     i32 new_game=0,loader_stop=0,loader_running=0,resource_drawing=-1,resource_updating=-1,pending_upload=0;
     float measured_fps=60;bool loading=false;i32 error=0;
+    EaglerMovement eagler_movement;
+    bool always_hitbox=false;
     World(GameState&,AnimationEngine&,Common&,Fonts&,Input&,Audio&,Scores&,ScreenEffects&);
     ~World();
     bool start(i32 mode);void advance_loading();void stop_session();void shutdown();

@@ -5,7 +5,7 @@ namespace th10::browser {
 Startup::Startup(GameState& s,AnimationEngine& e,FileSystem& f,Audio& a):state(s),engine(e),files(f),audio(a),update_chain(&e.chain_value){
     current=&value;common=&common_value;chain=&update_chain;callbacks=&e.callback_environment;
     update_callback=0x41feb0;draw_callback=0x41fef0;loader_callback=0x41f990;thread_vtable=1;
-    slots=e.manager.files;loading_animations=&loading_file;engine_flags=&s.engine_flags;display_flags=&s.configuration.display_flags;pending_screen=&s.pending_screen;
+    slots=e.manager.files;loading_animations=&loading_file;engine_flags=&s.engine_flags;display_flags=a.music_flags(s.configuration.display_flags);pending_screen=&s.pending_screen;
     music_format=reinterpret_cast<u8**>(&a.manager.formats);music_filename=a.manager.music_filename;
     opening_name="sig.anm";text_name="text.anm";format_name="../../bgm/thbgm.fmt";music_name="thbgm.dat";front_name="front.anm";bullet_name="bullet.anm";
     engine.register_receiver(*this);
@@ -13,6 +13,10 @@ Startup::Startup(GameState& s,AnimationEngine& e,FileSystem& f,Audio& a):state(s
 Startup::~Startup(){if(value){auto* object=value;object->shutdown(*this);std::free(object);}engine.unregister_receiver(*this);}
 bool Startup::initialize(){
     if(value)return true;audio.display_flags=state.configuration.display_flags;audio.music_enabled=state.configuration.options[1];audio.effects_enabled=state.configuration.options[2];
+    // The host owns stream/full PCM policy and can install OGG after startup.
+    // Native preload would cache a missing track as silence permanently. Mask
+    // this audio-only copy; keep the saved configuration and graphics flags.
+    if(audio.managed_music)audio.display_flags&=~16u;
     audio.configured_music=state.configuration.music_volume;audio.configured_effects=state.configuration.effects_volume;
     if(audio.begin_loading(0)<0)error=-1;value=StartupScreen::create(*this);return value!=nullptr;
 }

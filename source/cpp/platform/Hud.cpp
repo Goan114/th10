@@ -52,7 +52,7 @@ void Hud::update_score(){HudScore env(*this);actors.gui->update_score(env);}
 void Hud::update_power(i32 whole,i32 fraction){HudScore env(*this);actors.gui->update_power(whole,fraction,env);}
 void Hud::sound(i32 id){audio.manager.queue_effect(id,0,sound_definitions);}
 u32 Hud::animation(AnmFile& file,i32 script){return engine.manager.create(file,script,15,AnimationPlacement::WorldBack,engine,engine);}
-AudioGame Hud::music(){return {audio.manager,&records.data,&state.configuration.display_flags,&engine.speed};}
+AudioGame Hud::music(){return {audio.manager,&records.data,audio.music_flags(state.configuration.display_flags),&engine.speed};}
 Gui* Hud::allocate(){return static_cast<Gui*>(std::malloc(sizeof(Gui)));}
 AnmFile* Hud::load_animations(i32 slot,const char* name){return engine.manager.load(slot,name,engine.resources);}
 void Hud::release_animations(AnmFile& file){file.release(engine.resources);}

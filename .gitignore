@@ -1,4 +1,6 @@
 node_modules/
+/build-eagler/
+/assets-ogg/
 # Original game and translation data are supplied locally by lawful owners.
 /site/data/
 source/artifacts/

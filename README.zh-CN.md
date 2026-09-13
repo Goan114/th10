@@ -1,5 +1,9 @@
 # 東方風神録　～ Mountain of Faith
 
+当前 `th10-eagler` 基于 C++/WASI 源码接入现有 Eagler Touhou Launcher。
+构建和接口说明见 [Eagler 适配文档](docs/EAGLER_ADAPTATION.md)。下方保留的
+上游独立页面说明属于参考资料，不是 Eagler 的前端。
+
 [![QQ Group](https://img.shields.io/badge/QQ_Group-Join-12B7F5?logo=tencentqq&logoColor=white)](https://qm.qq.com/q/kcK8yRmd6o)
 
 [English](README.md) | [简体中文](README.zh-CN.md)

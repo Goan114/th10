@@ -10,7 +10,7 @@ export class NativeFileStore {
  close(id){const file=this.handles.get(id);this.handles.delete(id);if(file?.writing)this.onWrite?.(file.name,this.overlay.get(file.name));}
  content(file){return this.overlay.get(file.name)??file.bytes;}
  size(id){const file=this.handles.get(id);return file?this.content(file).length:0xffffffff;}
- seek(id,offset,origin){const file=this.handles.get(id);if(!file||origin>2)return 0xffffffff;const position=(origin===1?file.cursor:origin===2?this.content(file).length:0)+(offset|0);if(position<0||position>0xffffffff)return 0xffffffff;file.cursor=position;return position;}
+ seek(id,offset,origin){const file=this.handles.get(id);if(!file||origin>2)return 0xffffffff;const position=(origin===1?file.cursor:origin===2?this.content(file).length:0)+(offset|0);if(position<0||position>0xffffffff)return 0xffffffff;file.cursor=position;file.seekPosition=position;return position;}
  read(id,pointer,length){const file=this.handles.get(id);if(!file)return 0;const source=this.content(file),count=Math.max(0,Math.min(length>>>0,source.length-file.cursor)),bytes=source.subarray(file.cursor,file.cursor+count);if(bytes===null)throw new Error('Native file window was not prepared: '+file.name+' at '+file.cursor+' for '+count+' bytes');this.bytes(pointer,count).set(bytes);file.cursor+=count;return count;}
  write(id,pointer,length){const file=this.handles.get(id);if(!file?.writing)return 0;const end=file.cursor+(length>>>0);if(end>0xffffffff)return 0;const source=this.content(file),bytes=new Uint8Array(Math.max(end,source.length));bytes.set(source);bytes.set(this.bytes(pointer,length),file.cursor);file.bytes=bytes;file.cursor=end;this.overlay.set(file.name,bytes);return length>>>0;}
  list(directory,pattern,index,pointer,capacity){

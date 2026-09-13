@@ -1,0 +1,8 @@
+{
+  "package": "@wasm-audio-decoders/ogg-vorbis",
+  "version": "0.1.20",
+  "npmSha1": "14c684f2a844c51b9c56f846f07f09ffd7e069f5",
+  "source": "https://github.com/eshaz/wasm-audio-decoders/tree/main/src/ogg-vorbis",
+  "changes": ["Remove source map reference", "Export OggVorbisDecoder from bundled UMD as ESM", "Use unavailable-Worker stub in Node; only main-thread decoder is exported"],
+  "licenses": ["ogg-vorbis-decoder.LICENSE", "ogg-vorbis.LICENSE", "ogg.LICENSE"]
+}

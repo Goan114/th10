@@ -81,10 +81,11 @@ struct Audio {
     AudioHost& host;FileSystem& files;AudioManager manager{};
     u32 display_flags=0,window=0,random_state=1,next_task=0x10000;
     u8 music_enabled=1,effects_enabled=1;std::int8_t configured_music=100,configured_effects=100;
-    i32 error=0;bool timer_active=false,pumping=false;AudioTask* active_task=nullptr;AudioTask tasks[8]{};
+    i32 error=0;bool timer_active=false,pumping=false,managed_music=false;AudioTask* active_task=nullptr;AudioTask tasks[8]{};
     AudioWaves waves;AudioBuffers buffers;AudioSounds sounds;AudioControls controls;
     AudioResourcesHost resources;AudioDevices devices;AudioWorkerEnvironment workers;
     Audio(AudioHost&,FileSystem&);~Audio();
+    u32* music_flags(u32& configured){return managed_music?&display_flags:&configured;}
     i32 call(void*,AudioOperation,std::initializer_list<u32> args={});
     u32 create_task(AudioTaskKind);AudioTask* task(u32);void pump();
     u32 wait_task(u32);void close_task(u32);void advance(u32);

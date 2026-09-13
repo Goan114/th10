@@ -19,6 +19,11 @@ struct Lifecycle final:PlayerLifecycleEnvironment {
 };
 struct Movement final:PlayerMovementEnvironment {
     World& w;explicit Movement(World& world):w(world){economy=&w.state.game;manager=&w.engine.manager;effect_file=w.actors.bullets->animation_file;animations=&w.engine;allocation=&w.engine;default_rate=&w.engine.speed;input_keys=reinterpret_cast<const u32*>(&w.input.player_profiles[0].input.current);enemy_count=w.actors.enemies?&w.actors.enemies->count:nullptr;}
+    void adapt_movement(Player& player,i32& x,i32& y) override{
+        const auto* replay=w.state.replay;
+        if(replay&&replay->mode==1)return;
+        w.eagler_movement.apply(player,w.engine.speed,x,y);
+    }
     void update_option(PlayerOption& option) override{if(option.on_update==0x427950)w.actors.player->update_trailing_option(option);else if(option.on_update==0x427ad0)w.actors.player->update_anchored_option(option,manager->registry);else __builtin_trap();}
 };
 struct Shooting final:PlayerShootingEnvironment {
@@ -92,7 +97,16 @@ void World::destroy_player(Player* player){Resources env(*this);PlayerResources{
 void World::activate_player(){Resources env(*this);PlayerResources{*actors.player,env}.activate();}
 void World::configure_player(){PlayerOptionsEnvironment env{&state.game,&engine.manager,&engine,&engine,actors.player,0x427950,0x427ad0};actors.player->reconfigure_options(env);}
 i32 World::update_player(){Frame env(*this);return actors.player->update(env);}
-i32 World::draw_player(){Draw env(*this);return actors.player->draw(env);}
+i32 World::draw_player(){
+    Draw env(*this);auto& player=*actors.player;const i32 result=player.draw(env);
+    if(always_hitbox&&player.state==1){
+        const float x=player.position.x+224,y=player.position.y+16;
+        const float hx=player.hitbox_half_size.x,hy=player.hitbox_half_size.y;
+        rectangle({x-hx-1,y-hy-1,x+hx+1,y+hy+1},0xff202020);
+        rectangle({x-hx,y-hy,x+hx,y+hy},0xffeeeeee);
+    }
+    return result;
+}
 void World::hit_player(){Lifecycle env(*this);actors.player->hit(env);}
 i32 World::player_damage(const Vec3& p,const Vec2& size){Damage env(*this);return actors.player->damage(p,size,env);}
 i32 World::collide_player(const Vec3& p,const Vec2& size){Damage env(*this);return actors.player->collide_rectangle(p,size,env);}

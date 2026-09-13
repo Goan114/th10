@@ -103,5 +103,5 @@ void Title::sound(i32 id){audio.manager.queue_effect(id,0,sound_definitions);}
 void Title::text(AnmVm& vm,u32 color,const char* pattern,const u32* args,u32 count,TextAlignment alignment){char text[128];if(format_text(text,sizeof(text),pattern,args,count)<0)__builtin_trap();AnmText::draw(vm,color,text,alignment,fonts);}
 Replay* Title::preview(const char* name){auto* bytes=std::malloc(sizeof(Preview));if(!bytes)return nullptr;auto* p=new(bytes)Preview(scores.files,state.game.flags,previews);if(p->document.load(name)){p->~Preview();std::free(p);return nullptr;}previews=p;return &p->document.value;}
 void Title::delete_replay(Replay* replay){if(!replay)return;for(auto** link=&previews;*link;link=&(*link)->next){auto* p=*link;if(&p->document.value==replay){*link=p->next;p->~Preview();std::free(p);return;}}if(results){results->delete_replay(replay);return;}__builtin_trap();}
-AudioGame Title::music_control(){return {audio.manager,&scores.data,&state.configuration.display_flags,&engine.speed};}
+AudioGame Title::music_control(){return {audio.manager,&scores.data,audio.music_flags(state.configuration.display_flags),&engine.speed};}
 }

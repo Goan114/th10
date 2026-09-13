@@ -11,6 +11,9 @@ struct PlayerMovementEnvironment {
     AnmFile* effect_file;
     AnmEnvironment* animations;
     AnmAllocationEnvironment* allocation;
+    // Platform adapters may supply a logical-frame analog displacement.
+    // The default retains the original keyboard movement unchanged.
+    virtual void adapt_movement(Player&,i32&,i32&) {}
     virtual void update_option(PlayerOption& option)=0;
 };
 }
