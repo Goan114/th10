@@ -24,7 +24,9 @@ Original-game bugs such as Marisa B's abnormal damage are preserved as well. Rep
 
 ## Author
 
-Author: [@SteinsGateON](https://space.bilibili.com/34714121) · [Bilibili profile](https://space.bilibili.com/34714121)
+Author: [@SteinsGateON](https://space.bilibili.com/34714121)
+
+This project was created with GPT 6 Astra using only a few simple prompts. The prompts are available in the author's video.
 
 ![Author @SteinsGateON's Bilibili profile](docs/images/author-bilibili.png)
 

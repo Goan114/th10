@@ -22,7 +22,9 @@
 
 ## 作者
 
-作者：[@SteinsGateON](https://space.bilibili.com/34714121) · [B站空间](https://space.bilibili.com/34714121)
+作者：[@SteinsGateON](https://space.bilibili.com/34714121)
+
+本项目由 GPT 6 Astra 在少量简单提示词下创作。你可以在作者的视频中获取这些提示词。
 
 ![作者 @SteinsGateON 的 B 站空间](docs/images/author-bilibili.png)
 
