@@ -1,17 +1,28 @@
 # 東方風神録　～ Mountain of Faith
 
+[![QQ Group](https://img.shields.io/badge/QQ_Group-Join-12B7F5?logo=tencentqq&logoColor=white)](https://qm.qq.com/q/kcK8yRmd6o)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-一个力求精准地在行为上将 東方風神録　～ Mountain of Faith 中的 th10.exe 还原到 wasm 上的项目。
+一个力求精准地在行为上将 東方風神録　～ Mountain of Faith ver 1.00a 中的 th10.exe 还原到 wasm 上的项目。
+
+> [!NOTE]
+> 尽管代码可读性可能较差，基础功能现在却已经非常完善。欢迎参与优化。
 
 ## 精准行为级还原
 
 「行为级还原」指在已记录的输入和观测范围内，对状态变化、关卡流程、弹幕与碰撞、计分、录像、音频请求、绘制包和浮点行为进行原版对照。
 
+项目也保留了魔理沙 B 异常伤害等原作 Bug。由本项目保存的 Replay 同样可以在原版游戏中播放复现 **【需要证据】**。
+
 | 证据 | 当前记录 |
 | --- | --- |
 | 原版长对照 | 七关共 96,000 帧、6,526,503 个绘制包。 |
 | 真实玩家录像 | 7 个完整录像，均和原版行为保持一致。[实战录像验证](docs/REPLAY-VALIDATION.zh-CN.md) |
+
+## 作者
+
+作者：[@SteinsGateON](https://space.bilibili.com/34714121) · [B站空间](https://space.bilibili.com/34714121)
 
 ## 快速开始
 
@@ -77,4 +88,3 @@ python scripts\package.py --verify-checksums
 项目自有代码沿用已经确定的项目许可证。
 
 第三方代码继续适用各自许可证，详见 `第三方许可.txt`、`tools/Node.LICENSE` 和[来源记录](docs/SOURCES.md)。
-

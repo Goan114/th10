@@ -1,17 +1,28 @@
 # Touhou Fuujinroku ~ Mountain of Faith
 
+[![QQ Group](https://img.shields.io/badge/QQ_Group-Join-12B7F5?logo=tencentqq&logoColor=white)](https://qm.qq.com/q/kcK8yRmd6o)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A project that aims to reproduce the behavior of `th10.exe` from *Touhou Fuujinroku ~ Mountain of Faith* on WebAssembly as accurately as possible.
+A project that aims to reproduce the behavior of `th10.exe` from *Touhou Fuujinroku ~ Mountain of Faith ver 1.00a* on WebAssembly as accurately as possible.
+
+> [!NOTE]
+> Although the code may be difficult to read, the core functionality is now very solid. Improvements are welcome.
 
 ## Precise behavioral reimplementation
 
 “Behavioral reimplementation” means comparing state transitions, stage flow, bullets and collision, scoring, replays, audio requests, draw packets, and floating-point behavior with the original under recorded inputs and observations.
 
+Original-game bugs such as Marisa B's abnormal damage are preserved as well. Replays saved by this project can also be played back in the original game **[evidence needed]**.
+
 | Evidence                       | Current record                                                                                                        |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | Long original-game comparisons | 96,000 frames and 6,526,503 draw packets across all seven stages.                                                     |
 | Real-player replays            | 7 complete replays remained behaviorally consistent with the original. [Replay validation](docs/REPLAY-VALIDATION.md) |
+
+## Author
+
+Author: [@SteinsGateON](https://space.bilibili.com/34714121) · [Bilibili profile](https://space.bilibili.com/34714121)
 
 ## Quick start
 
