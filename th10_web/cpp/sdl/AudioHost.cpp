@@ -5,8 +5,13 @@
 #define MA_NO_RESOURCE_MANAGER
 #define MA_NO_WAV
 #define MA_NO_MP3
+#define MA_NO_FLAC
 #define MA_NO_ENCODING
 #define MA_NO_THREADING
+// File-backed Vorbis is the only canonical BGM source. Keeping stb_vorbis in
+// this translation unit gives miniaudio both seekable streaming and decode-
+// to-memory support without a JS-side audio path.
+#include "../../../portable/sdl/third_party/stb_vorbis.h"
 #define MINIAUDIO_IMPLEMENTATION
 #include "../../../portable/sdl/third_party/miniaudio.h"
 #include <SDL3/SDL.h>
@@ -14,9 +19,11 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 #include "MusicLayout.hpp"
 
@@ -197,40 +204,63 @@ EXPORT("sdl_audio_device") u32 sdl_audio_device(){return audio_host_create();}
 }
 
 // SDL file data source for the game's original PCM archive address space.
-// Lossless per-track FLAC files are ordinary Emscripten FS resources. Decoding,
-// seeking and streaming stay in C++; no per-read browser service is involved.
+// Each retail archive region is mapped to one canonical OGG. The game still
+// owns archive offsets, loop/fade state and the refill worker.
 namespace {
-bool music_enabled=true;
+bool music_enabled=true,ogg_full=false;
+constexpr const char* music_names[] = {
+    "02","00","01","03","04","05","06","07","08","09",
+    "10","11","12","15","16","13","14","17"
+};
+struct MusicFile;
+std::vector<MusicFile*> music_streams;
 struct MusicFile {
-    uint64_t cursor=0,decoder_frame=0;int track=-1;SDL_IOStream* source=nullptr;ma_decoder decoder{};bool valid=false;
-    ~MusicFile(){reset();}
-    void reset(){if(valid)ma_decoder_uninit(&decoder);if(source)SDL_CloseIO(source);source=nullptr;valid=false;track=-1;}
+    uint64_t cursor=0,decoder_frame=0;int track=-1;SDL_IOStream* source=nullptr;ma_decoder decoder{};std::vector<u8> full_pcm;bool valid=false,full_ready=false,waiting=false;
+    ~MusicFile(){music_streams.erase(std::remove(music_streams.begin(),music_streams.end(),this),music_streams.end());reset();}
+    void reset(){if(valid)ma_decoder_uninit(&decoder);if(source)SDL_CloseIO(source);source=nullptr;valid=false;full_ready=false;waiting=false;track=-1;full_pcm.clear();}
     static ma_result read(ma_decoder* d,void* out,size_t size,size_t* read){*read=SDL_ReadIO(static_cast<MusicFile*>(d->pUserData)->source,out,size);return *read?MA_SUCCESS:MA_AT_END;}
     static ma_result seek(ma_decoder* d,ma_int64 offset,ma_seek_origin origin){return SDL_SeekIO(static_cast<MusicFile*>(d->pUserData)->source,offset,origin==ma_seek_origin_start?SDL_IO_SEEK_SET:origin==ma_seek_origin_current?SDL_IO_SEEK_CUR:SDL_IO_SEEK_END)>=0?MA_SUCCESS:MA_BAD_SEEK;}
-    bool select(int n){if(track==n&&valid)return true;reset();char name[48];std::snprintf(name,sizeof(name),"/music/%02d.flac",n);source=SDL_IOFromFile(name,"rb");if(!source)return false;
-        auto cfg=ma_decoder_config_init(ma_format_s16,2,44100);if(ma_decoder_init(read,seek,this,&cfg,&decoder)!=MA_SUCCESS){reset();return false;}valid=true;track=n;decoder_frame=0;return true;
+    bool select(int n,const MusicEntry& entry){
+        if(n<0||n>=int(sizeof(music_names)/sizeof(music_names[0])))return false;
+        if(track==n&&(valid||full_ready))return true;
+        reset();track=n;char name[64];std::snprintf(name,sizeof(name),"/bgm-ogg/th10_%s.ogg",music_names[n]);source=SDL_IOFromFile(name,"rb");if(!source){waiting=true;return false;}
+        auto cfg=ma_decoder_config_init(ma_format_s16,2,44100);if(ma_decoder_init(read,seek,this,&cfg,&decoder)!=MA_SUCCESS){reset();return false;}valid=true;decoder_frame=0;
+        if(!ogg_full)return true;
+        const auto frames=entry.length/4;full_pcm.resize(size_t(entry.length));uint64_t decoded=0;
+        while(decoded<frames){ma_uint64 actual=0;const auto result=ma_decoder_read_pcm_frames(&decoder,full_pcm.data()+size_t(decoded)*4,std::min<uint64_t>(4096,frames-decoded),&actual);if((result!=MA_SUCCESS&&result!=MA_AT_END)||!actual){reset();return false;}decoded+=actual;}
+        ma_decoder_uninit(&decoder);valid=false;SDL_CloseIO(source);source=nullptr;full_ready=true;waiting=false;return true;
     }
+    void resource_changed(){if(waiting){const auto n=track;reset();track=n;}}
 };
 constexpr uint64_t music_size=uint64_t(music_entries[17].offset)+music_entries[17].length;
 Sint64 musicSize(void*){return music_size;}
 Sint64 musicSeek(void* user,Sint64 off,SDL_IOWhence origin){auto& f=*static_cast<MusicFile*>(user);const auto pos=(origin==SDL_IO_SEEK_SET?0:origin==SDL_IO_SEEK_CUR?Sint64(f.cursor):Sint64(music_size))+off;if(pos<0)return -1;f.cursor=pos;return pos;}
-size_t musicRead(void* user,void* out,size_t size,SDL_IOStatus* status){auto& f=*static_cast<MusicFile*>(user);auto* dest=static_cast<u8*>(out);size_t done=0;
+size_t musicRead(void* user,void* out,size_t size,SDL_IOStatus* status){auto& f=*static_cast<MusicFile*>(user);auto* dest=static_cast<u8*>(out);size_t done=0;*status=SDL_IO_STATUS_READY;
     if(!music_enabled){const auto count=std::min<uint64_t>(size,f.cursor<music_size?music_size-f.cursor:0);std::memset(out,0,count);f.cursor+=count;if(f.cursor>=music_size)*status=SDL_IO_STATUS_EOF;return count;}
     while(done<size&&f.cursor<music_size){
         if(f.cursor<16){const auto n=std::min<uint64_t>(size-done,16-f.cursor);std::memset(dest+done,0,n);done+=n;f.cursor+=n;continue;}
         int n=17;while(n>0&&f.cursor<music_entries[n].offset)--n;const auto& t=music_entries[n];
-        if(!f.select(n)){*status=SDL_IO_STATUS_ERROR;break;}
+        if(!f.select(n,t)){
+            // A managed OGG may arrive after the Runtime starts. Do not turn
+            // a missing optional component into an IO error; the resource
+            // change export invalidates this pending selection for retry.
+            const auto count=std::min<uint64_t>(size-done,t.length-(f.cursor-t.offset));std::memset(dest+done,0,count);done+=count;f.cursor+=count;continue;
+        }
         const auto local=f.cursor-t.offset,frame=local/4;const size_t count=std::min<uint64_t>(size-done,t.length-local),leading=local%4;
+        if(f.full_ready){std::memcpy(dest+done,f.full_pcm.data()+local,count);f.cursor+=count;done+=count;continue;}
         if(frame!=f.decoder_frame&&ma_decoder_seek_to_pcm_frame(&f.decoder,frame)!=MA_SUCCESS){*status=SDL_IO_STATUS_ERROR;break;}
         ma_uint64 actual=0;const auto frames=(count+leading+3)/4;
         std::vector<u8> scratch;void* target=dest+done;if(leading||count%4){scratch.resize(frames*4);target=scratch.data();}
-        ma_decoder_read_pcm_frames(&f.decoder,target,frames,&actual);f.decoder_frame=frame+actual;
-        const auto bytes=std::min<uint64_t>(count,actual*4>leading?actual*4-leading:0);if(!bytes){*status=SDL_IO_STATUS_ERROR;break;}
+        const auto result=ma_decoder_read_pcm_frames(&f.decoder,target,frames,&actual);f.decoder_frame=frame+actual;
+        const auto bytes=std::min<uint64_t>(count,actual*4>leading?actual*4-leading:0);if((result!=MA_SUCCESS&&result!=MA_AT_END)||!bytes){*status=SDL_IO_STATUS_ERROR;break;}
         if(!scratch.empty())std::memcpy(dest+done,scratch.data()+leading,bytes);f.cursor+=bytes;done+=bytes;
     }
     if(f.cursor>=music_size)*status=SDL_IO_STATUS_EOF;return done;
 }
 bool musicClose(void* user){delete static_cast<MusicFile*>(user);return true;}
 }
-extern "C" SDL_IOStream* th10_music_stream(){SDL_IOStreamInterface iface{};SDL_INIT_INTERFACE(&iface);iface.size=musicSize;iface.seek=musicSeek;iface.read=musicRead;iface.close=musicClose;auto* f=new MusicFile();auto* io=SDL_OpenIO(&iface,f);if(!io)delete f;return io;}
+extern "C" SDL_IOStream* th10_music_stream(){SDL_IOStreamInterface iface{};SDL_INIT_INTERFACE(&iface);iface.size=musicSize;iface.seek=musicSeek;iface.read=musicRead;iface.close=musicClose;auto* f=new MusicFile();music_streams.push_back(f);auto* io=SDL_OpenIO(&iface,f);if(!io){music_streams.pop_back();delete f;}return io;}
 extern "C" __attribute__((export_name("sdl_music_enabled"))) void sdl_music_enabled(u32 enabled){music_enabled=enabled!=0;}
+extern "C" __attribute__((export_name("sdl_ogg_decode_mode"))) void sdl_ogg_decode_mode(u32 full){ogg_full=full!=0;}
+extern "C" __attribute__((export_name("sdl_music_resource_changed"))) void sdl_music_resource_changed(){for(auto* stream:music_streams)stream->resource_changed();}
+extern "C" __attribute__((export_name("sdl_music_stats"))) const u32* sdl_music_stats(){static u32 out[6]{};out[0]=music_enabled;out[1]=ogg_full;out[2]=music_streams.size();out[3]=out[4]=out[5]=0;for(auto* stream:music_streams){out[3]+=stream->waiting;out[4]+=stream->valid;out[5]+=stream->full_ready;}return out;}

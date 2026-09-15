@@ -42,7 +42,7 @@ struct Key {const char* code;const char* sdl;u32 scan,vk;bool hosted=false;SDL_S
 touhou::input::TouchController gestures;
 touhou::input::TouchState touch_state(){touhou::input::TouchState s;if(!session||!session->app)return s;u32 raw[8];application_touch_state(session->app,raw);float values[5];std::memcpy(values,raw+3,20);
     s.context=raw[0];s.instance=raw[1];s.ready=raw[2];s.x=values[0];s.y=values[1];s.fast=values[2];s.slow=values[3];s.min_x=-184;s.max_x=184;s.min_y=32;s.max_y=432;return s;}
-void cancel(){gestures.cancel();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
+void cancel(){gestures.cancel_transient();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
 void key(InputSnapshot& s,u32 scan,u32 vk){s.scan_keys[scan]=128;s.virtual_keys[vk]=128;if(vk>=160&&vk<=165)s.virtual_keys[16+(vk-160)/2]=128;}
 void touch(int type,int id,float x,float y){gestures.pointer(type,id,x,y,SDL_GetTicks(),touch_state(),session&&session->input&&session->input->snapshot.virtual_keys[16]);}
 
@@ -66,7 +66,7 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
 }
 #define EXPORT(name) __attribute__((export_name(name)))
 EXPORT("sdl_game_open") Application* sdl_game_open(u32 chinese,u32 seed){
-    gestures.reset();
+    gestures.begin_session();
     for(auto& k:keyboard_map)k.native=SDL_GetScancodeFromName(k.sdl);
     close_controllers();SDL_InitSubSystem(SDL_INIT_JOYSTICK);int controller_count=0;auto* ids=SDL_GetJoysticks(&controller_count);for(int i=0;i<controller_count;i++)add_controller(ids[i]);SDL_free(ids);
     session=std::make_unique<Session>();auto& s=*session;sdl_files_root(chinese);u32 rng[]{seed,0};std::memcpy(&s.random,rng,8);std::memcpy(&s.visual,rng,8);
@@ -77,12 +77,12 @@ EXPORT("sdl_game_open") Application* sdl_game_open(u32 chinese,u32 seed){
 }
 EXPORT("sdl_game_close") void sdl_game_close(){cancel();close_controllers();session.reset();}
 EXPORT("sdl_key") void sdl_key(const char* code,u32 down){for(auto& k:keyboard_map)if(!std::strcmp(code,k.code)){k.hosted=down!=0;return;}}
-EXPORT("sdl_keys_clear") void sdl_keys_clear(){for(auto& k:keyboard_map)k.hosted=false;gestures.reset();cancel();}
+EXPORT("sdl_keys_clear") void sdl_keys_clear(){for(auto& k:keyboard_map)k.hosted=false;gestures.reset();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
 EXPORT("sdl_touch") void sdl_touch(u32 type,i32 id,float x,float y){touch(type,id,x,y);}
 EXPORT("sdl_touch_cancel") void sdl_touch_cancel(){cancel();}
 EXPORT("sdl_touch_options") void sdl_touch_options(u32 on,u32 free,float speed){gestures.enabled=on;gestures.unlimited=free;gestures.sensitivity=std::clamp(speed,.1f,5.f);if(!on)cancel();}
 EXPORT("sdl_touch_gestures") void sdl_touch_gestures(u32 two,u32 taps){gestures.two_finger=two;gestures.double_tap=taps;}
-EXPORT("sdl_touch_mode") void sdl_touch_mode(u32 mode){gestures.mode=mode;cancel();}
+EXPORT("sdl_touch_mode") void sdl_touch_mode(u32 mode){if(gestures.set_mode(static_cast<int>(mode))&&session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
 EXPORT("sdl_touch_controls") void sdl_touch_controls(u32 shoot,u32 slow,u32 bomb,u32 escape,float x,float y){gestures.controls(shoot,slow,bomb,escape,x,y);}
 EXPORT("sdl_resource_stats") const u32* sdl_resource_stats(){static u32 out[4]{};if(session&&session->files){auto& f=*session->files;out[0]=f.cache_bytes;out[1]=f.cache_hits;out[2]=f.cache_misses;out[3]=f.decoded.size();}return out;}
 EXPORT("sdl_game_status") const i32* sdl_game_status(){static i32 result[10]{};if(session&&session->app){auto& a=*session->app;result[0]=a.value.screen;result[1]=a.state.game.stage;result[2]=a.error;result[3]=a.state.game.lives;result[4]=a.state.game.power;result[5]=gestures.current_context();result[6]=gestures.active();result[7]=gestures.fire;result[8]=gestures.focus;result[9]=a.input.player_profiles[0].input.raw;}return result;}
