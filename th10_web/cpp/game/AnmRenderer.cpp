@@ -19,13 +19,13 @@ u32 AnmRenderer::axis_geometry(const AnmVm& vm,AnmVertex* q,bool pixel) noexcept
     const auto height_product=number(vm.sprite_size.y)*number(vm.scale.y);
     const auto height=number(height_product.to_float()),half_height=number((height_product*number(0.5f)).to_float());
     switch((vm.flags>>18)&3){
-    case 0:{auto left=sum_values(vm.child_position.x,vm.position.x,vm.script_position.x)-width*number(0.5f);if(pixel)left=N::from_double(std::floor(left.to_double()));
+    case 0:{auto left=sum_values(vm.child_position.x,vm.position.x,vm.script_position.x)-width*number(0.5f);
         q[0].position.x=q[2].position.x=left.to_float();q[1].position.x=q[3].position.x=(number(q[0].position.x)+width).to_float();break;}
     case 1:q[0].position.x=q[2].position.x=sum_values(vm.script_position.x,vm.position.x,vm.child_position.x).to_float();q[1].position.x=q[3].position.x=(number(vm.script_position.x)+number(vm.position.x)+width+number(vm.child_position.x)).to_float();break;
     case 2:q[0].position.x=q[2].position.x=(sum_values(vm.script_position.x,vm.position.x,vm.child_position.x)-width).to_float();q[1].position.x=q[3].position.x=sum_values(vm.script_position.x,vm.position.x,vm.child_position.x).to_float();break;
     }
     switch((vm.flags>>20)&3){
-    case 0:{auto top=sum_values(vm.child_position.y,vm.position.y,vm.script_position.y)-half_height;if(pixel)top=N::from_double(std::floor(top.to_double()));q[0].position.y=q[1].position.y=top.to_float();q[2].position.y=q[3].position.y=(number(q[0].position.y)+height).to_float();break;}
+    case 0:{auto top=sum_values(vm.child_position.y,vm.position.y,vm.script_position.y)-half_height;q[0].position.y=q[1].position.y=top.to_float();q[2].position.y=q[3].position.y=(number(q[0].position.y)+height).to_float();break;}
     case 1:if(pixel){const auto top=sum_values(vm.position.y,vm.child_position.y,vm.script_position.y);q[0].position.y=q[1].position.y=top.to_float();q[2].position.y=q[3].position.y=(top+height).to_float();}
         else{q[0].position.y=q[1].position.y=sum_values(vm.child_position.y,vm.script_position.y,vm.position.y).to_float();q[2].position.y=q[3].position.y=(number(vm.child_position.y)+number(vm.script_position.y)+height+number(vm.position.y)).to_float();}break;
     case 2:{const auto bottom=pixel?sum_values(vm.position.y,vm.child_position.y,vm.script_position.y):sum_values(vm.child_position.y,vm.script_position.y,vm.position.y);q[0].position.y=q[1].position.y=(bottom-height).to_float();q[2].position.y=q[3].position.y=bottom.to_float();break;}
@@ -90,7 +90,9 @@ i32 AnmRenderer::append(const AnmVertex* q) noexcept {constexpr u32 indices[]={0
 // 0x442670. Offset, pixel alignment, UVs, bounds, material state, tint, batching.
 i32 AnmRenderer::submit(const AnmVm& vm,u32 flags,bool flip_u){
     auto* q=environment.quad;for(u32 i=0;i<4;++i){q[i].position.x=Scalar::add(q[i].position.x,manager.draw_offset.x);q[i].position.y=Scalar::add(q[i].position.y,manager.draw_offset.y);}
-    if(flags&1){const auto aligned=[](float x){return (number(x).round_to_integer()-number(0.5f)).to_float();};q[0].position.x=q[2].position.x=aligned(q[0].position.x);q[1].position.x=q[3].position.x=aligned(q[1].position.x);q[0].position.y=q[1].position.y=aligned(q[0].position.y);q[2].position.y=q[3].position.y=aligned(q[2].position.y);}
+    // Keep fractional motion for every screen-space sprite. The half-pixel
+    // raster convention remains; integer-aligned stationary sprites are unchanged.
+    if(flags&1){const auto aligned=[](float x){return (number(x)-number(0.5f)).to_float();};q[0].position.x=q[2].position.x=aligned(q[0].position.x);q[1].position.x=q[3].position.x=aligned(q[1].position.x);q[0].position.y=q[1].position.y=aligned(q[0].position.y);q[2].position.y=q[3].position.y=aligned(q[2].position.y);}
     q[0].uv.x=q[2].uv.x=Scalar::add(flip_u?vm.sprite->u1:vm.sprite->u0,vm.uv_offset.x);q[1].uv.x=q[3].uv.x=Scalar::add(flip_u?vm.sprite->u0:vm.sprite->u1,vm.uv_offset.x);q[0].uv.y=q[1].uv.y=Scalar::add(vm.sprite->v0,vm.uv_offset.y);q[2].uv.y=q[3].uv.y=Scalar::add(vm.sprite->v1,vm.uv_offset.y);
     float max_x=q[0].position.x>q[1].position.x?q[0].position.x:q[1].position.x,max_y=q[0].position.y>q[1].position.y?q[0].position.y:q[1].position.y;
     float min_x=q[0].position.x<q[1].position.x?q[0].position.x:q[1].position.x,min_y=q[0].position.y<q[1].position.y?q[0].position.y:q[1].position.y;
