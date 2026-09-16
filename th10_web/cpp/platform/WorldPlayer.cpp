@@ -108,7 +108,7 @@ void World::configure_player(){PlayerOptionsEnvironment env{&state.game,&engine.
 i32 World::update_player(){auto& p=*actors.player;player_presentation={p.position,p.state,true};Frame env(*this);return p.update(env);}
 i32 World::draw_player(){
     Draw env(*this);auto& player=*actors.player;Player copy;Player* draw=&player;
-    if(high_refresh::render_only){copy=player;draw=&copy;if(high_refresh::active&&player_presentation.valid&&player_presentation.state==player.state){const float dx=player.position.x-player_presentation.position.x,dy=player.position.y-player_presentation.position.y;if(dx*dx+dy*dy<16384.0f)copy.position={high_refresh::lerp_world(player_presentation.position.x,player.position.x),high_refresh::lerp_world(player_presentation.position.y,player.position.y),high_refresh::lerp_world(player_presentation.position.z,player.position.z)};}}
+    if(high_refresh::render_only){copy=player;draw=&copy;engine.present(copy.animation,player.animation);if(high_refresh::active&&player_presentation.valid&&player_presentation.state==player.state){const float dx=player.position.x-player_presentation.position.x,dy=player.position.y-player_presentation.position.y;if(dx*dx+dy*dy<16384.0f)copy.position={high_refresh::lerp_world(player_presentation.position.x,player.position.x),high_refresh::lerp_world(player_presentation.position.y,player.position.y),high_refresh::lerp_world(player_presentation.position.z,player.position.z)};}}
     const i32 result=draw->draw(env);
     if(always_hitbox&&player.state==1){
         const float x=draw->position.x+224,y=draw->position.y+16,hx=player.hitbox_half_size.x,hy=player.hitbox_half_size.y;

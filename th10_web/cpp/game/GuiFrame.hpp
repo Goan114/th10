@@ -24,5 +24,6 @@ struct GuiDrawEnvironment {
     EnemyManager** enemies;
     virtual void draw_animation(AnmVm& vm)=0;
     virtual void rectangle(const ScreenRect& rectangle,u32 color)=0;
+    virtual float presentation_boss_health(float current)=0;
 };
 }

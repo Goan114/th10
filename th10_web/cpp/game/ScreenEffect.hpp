@@ -45,6 +45,7 @@ struct ScreenEffectEnvironment {
     CallbackToken update_callbacks[9],draw_callbacks[9],delete_callback;
     virtual ScreenEffect* allocate()=0;
     virtual void destroy(ScreenEffect* effect)=0;
+    virtual i32 presentation_alpha(const ScreenEffect& effect)=0;
     virtual void fullscreen_viewport()=0;
     virtual void rectangle(const ScreenRect& bounds,u32 color)=0;
 };

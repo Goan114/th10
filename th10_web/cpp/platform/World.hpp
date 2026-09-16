@@ -26,6 +26,8 @@ struct World final:HudActions,CallbackReceiver {
     struct ItemPresentation {Vec3 position{};i32 age=0,state=0,kind=0;bool active=false;} item_regular_presentation[150]{},item_faith_presentation[2048]{};
     struct LaserPresentation {Vec3 position{};float angle=0,length=0,width=0;u32 id=0;i32 state=0;u32 kind=0;};
     std::map<const EnemyLaser*,LaserPresentation> laser_presentation;
+    struct PopupPresentation {Vec3 position{};float elapsed=0;i32 timer=-2;u8 active=0,length=0;};
+    PopupPresentation popup_presentation[723]{};
     GameSessionResources::Progress loading_progress;
     World(GameState&,AnimationEngine&,Common&,Fonts&,Input&,Audio&,Scores&,ScreenEffects&);
     ~World();
@@ -66,7 +68,7 @@ struct World final:HudActions,CallbackReceiver {
     i32 update_replay();i32 replay_frame_action();i32 draw_replay();void finish_replay(i32);
     Replay* preview(const char*);void release_replay(Replay*);void save_replay(const char*,const char*);
     bool create_results();void destroy_results(Results*);void show_results(bool);i32 update_results();i32 draw_results();
-    bool create_popups();void destroy_popups(ScorePopups*);i32 draw_popups();void popup(const Vec3&,i32,u32);
+    bool create_popups();void destroy_popups(ScorePopups*);i32 update_popups();i32 draw_popups();void popup(const Vec3&,i32,u32);
     bool create_hints();void destroy_hints(StageHints*);i32 update_hints();void record_hint(const char*,const Vec3&,bool caution);
     i32 update_session();void activate_session();
     ResultsEnvironment* results_adapter=nullptr;

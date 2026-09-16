@@ -1,4 +1,5 @@
 #include "StartupScreen.hpp"
+#include "HighRefresh.hpp"
 namespace th10 {
 // 0x41f850.
 void StartupScreen::initialize(StartupScreen** current) noexcept {std::memset(this,0,sizeof(*this));flags=2;*current=this;}
@@ -34,5 +35,5 @@ StartupScreen* StartupScreen::create(StartupEnvironment& env){auto* value=env.al
 // 0x41fd90 / 0x41feb0.
 i32 StartupScreen::update(StartupEnvironment& env){if(flags&2){(*env.common)->enable();*env.engine_flags&=~0x1000u;*env.pending_screen=4;flags&=~2u;}return 1;}
 // 0x41fdd0 / 0x41fef0.
-i32 StartupScreen::draw(StartupEnvironment& env){if(opening_ready==1){opening_animation=env.create_opening_animation(*opening_file);opening_ready=wrapping_add(opening_ready,1);}if(resources_ready==1){auto& resources=**env.common;if(!resources.loading_animation)resources.loading_animation=env.create_loading_animation(*resources.effects);resources_ready=wrapping_add(resources_ready,1);}elapsed=wrapping_add(elapsed,1);return 1;}
+i32 StartupScreen::draw(StartupEnvironment& env){if(!high_refresh::render_only){if(opening_ready==1){opening_animation=env.create_opening_animation(*opening_file);opening_ready=wrapping_add(opening_ready,1);}if(resources_ready==1){auto& resources=**env.common;if(!resources.loading_animation)resources.loading_animation=env.create_loading_animation(*resources.effects);resources_ready=wrapping_add(resources_ready,1);}elapsed=wrapping_add(elapsed,1);}return 1;}
 }

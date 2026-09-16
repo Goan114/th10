@@ -1,7 +1,9 @@
 #include "../game/CallbackNames.hpp"
 #include "Hud.hpp"
 #include "../game/TextFormat.hpp"
+#include "../game/HighRefresh.hpp"
 #include "AudioData.hpp"
+#include <cmath>
 #include <cstdlib>
 namespace th10::browser {
 HudMessages::HudMessages(Hud& h):owner(h){gui=h.actors.gui;game=&h.state.game;registry=&h.engine.manager.registry;keys=reinterpret_cast<const u32*>(&h.input.player_profiles[0].input.current);pressed=&h.input.player_profiles[0].input.pressed;rate=&h.engine.speed;decoded_text=text;}
@@ -24,6 +26,10 @@ void HudFrame::release_dialogue(Dialogue* dialogue){std::free(dialogue);}
 void HudFrame::play_sound(i32 id){owner.sound(id);}
 void HudFrame::draw_animation(AnmVm& vm){owner.engine.draw(vm);}
 void HudFrame::rectangle(const ScreenRect& rect,u32 color){const u32 colors[]={color,color,color,color};auto renderer=owner.engine.renderer();auto* manager=&owner.engine.manager;draw_screen_rectangle(rect,colors,&manager,renderer);}
+float HudFrame::presentation_boss_health(float current){
+    if(!high_refresh::active||!owner.boss_presentation_valid||!owner.actors.enemies||owner.actors.enemies->bosses[0]!=owner.previous_boss||std::abs(current-owner.previous_boss_health)>.1f)return current;
+    return high_refresh::lerp_world(owner.previous_boss_health,current);
+}
 HudScore::HudScore(Hud& h):owner(h){static constexpr i32 normal[]={2000000,4000000,8000000,15000000,1000000000},extra[]={3000000,10000000,1000000000};game=&h.state.game;normal_extends=normal;extra_extends=extra;}
 void HudScore::bind_digit(AnmFile& f,AnmVm& vm,i32 digit){f.bind_sprite(vm,digit);}
 void HudScore::update_animation(AnmVm& vm){owner.engine.update(vm);}
@@ -47,7 +53,7 @@ bool Hud::initialize(){return actors.gui||GuiResources::create(*this);}
 void Hud::activate(){GuiResources{*actors.gui,*this}.activate();}
 void Hud::shutdown(){if(actors.gui){auto* gui=actors.gui;GuiResources{*gui,*this}.shutdown();std::free(gui);}}
 #ifndef TH_NATIVE_PLATFORM
-bool Hud::invoke(CallbackToken token,void* object,i32& result){if(token!=update_callback&&token!=draw_callback)return false;HudFrame env(*this);auto& gui=*static_cast<Gui*>(object);result=token==update_callback?gui.update(env):gui.draw(env);return true;}
+bool Hud::invoke(CallbackToken token,void* object,i32& result){if(token!=update_callback&&token!=draw_callback)return false;HudFrame env(*this);auto& gui=*static_cast<Gui*>(object);if(token==update_callback){previous_boss_health=gui.displayed_boss_health;previous_boss=actors.enemies?actors.enemies->bosses[0]:nullptr;boss_presentation_valid=true;result=gui.update(env);}else result=gui.draw(env);return true;}
 #endif
 void Hud::start_dialogue(i32 id){HudMessages env(*this);Dialogue::start(id,env);}
 void Hud::notify(i32 kind,i32 value){HudNotification env(*this);actors.gui->notify(kind,value,env);}
@@ -70,7 +76,7 @@ void Hud::bind_sprite(AnmFile& file,AnmVm& vm,i32 sprite){file.bind_sprite(vm,sp
 
 namespace th10::browser {
 void Hud::bind_callbacks(Callbacks& b){callback_context=this;
- b.bind(update_callback,this,[](void* p,void* o,i32){HudFrame env(*static_cast<Hud*>(p));return static_cast<Gui*>(o)->update(env);});
+ b.bind(update_callback,this,[](void* p,void* o,i32){auto& h=*static_cast<Hud*>(p);auto& gui=*static_cast<Gui*>(o);h.previous_boss_health=gui.displayed_boss_health;h.previous_boss=h.actors.enemies?h.actors.enemies->bosses[0]:nullptr;h.boss_presentation_valid=true;HudFrame env(h);return gui.update(env);});
  b.bind(draw_callback,this,[](void* p,void* o,i32){HudFrame env(*static_cast<Hud*>(p));return static_cast<Gui*>(o)->draw(env);});
 }
 }

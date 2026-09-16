@@ -17,7 +17,7 @@ EM_JS(void, browser_loop_stopped, (), { if(Module['runtimeStopped'])Module['runt
 namespace {
 th10::browser::Application* application=nullptr;
 unsigned loop_epoch=0;bool running=false,suspended=false,presentation_primed=false;double elapsed=0,last=-1,audio_remainder=0,callback_begin=0;touhou::sdl::FrameCadence cadence;touhou::sdl::PresentationCadence presentation;
-bool interpolation_ready(){if(!application||application->stopped||!application->initialized||application->world&&application->world->loading)return false;const th10::i32 screen=application->value.screen;return screen==4||screen==7;}
+bool interpolation_ready(){if(!application||application->stopped||!application->initialized||application->world&&application->world->loading)return false;const th10::i32 screen=application->value.screen;return screen==1||screen==4||screen==7||screen==14;}
 EM_BOOL frame(double timestamp,void* epoch){
     if(!running||uintptr_t(epoch)!=loop_epoch)return EM_FALSE;
     const double now=timestamp/1000.,delta=last<0?0:std::max(0.,now-last);last=now;callback_begin=emscripten_get_now();

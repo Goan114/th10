@@ -26,7 +26,7 @@ World::World(GameState& s,AnimationEngine& e,Common& c,Fonts& f,Input& i,Audio& 
     engine.callback_environment.bind(callback_id::ReplayDraw,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.draw_replay();});
     engine.callback_environment.bind(callback_id::ResultsUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.update_results();});
     engine.callback_environment.bind(callback_id::ResultsDraw,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.draw_results();});
-    engine.callback_environment.bind(callback_id::PopupsUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.actors.popups->update(&w.engine.speed);});
+    engine.callback_environment.bind(callback_id::PopupsUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.update_popups();});
     engine.callback_environment.bind(callback_id::PopupsDraw,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.draw_popups();});
     engine.callback_environment.bind(callback_id::HintsUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.update_hints();});
     engine.callback_environment.bind(callback_id::HintsDraw,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return 1;});
@@ -95,7 +95,7 @@ bool World::invoke(CallbackToken token,void*,i32& result){
     case callback_id::SpellUpdate:result=update_spell();break;case callback_id::SpellBackground:result=draw_spell(false);break;case callback_id::SpellForeground:result=draw_spell(true);break;
     case callback_id::ReplayUpdate:result=update_replay();break;case callback_id::ReplayFrame:result=replay_frame_action();break;case callback_id::ReplayDraw:result=draw_replay();break;
     case callback_id::ResultsUpdate:result=update_results();break;case callback_id::ResultsDraw:result=draw_results();break;
-    case callback_id::PopupsUpdate:result=actors.popups->update(&engine.speed);break;case callback_id::PopupsDraw:result=draw_popups();break;
+    case callback_id::PopupsUpdate:result=update_popups();break;case callback_id::PopupsDraw:result=draw_popups();break;
     case callback_id::HintsUpdate:result=update_hints();break;
     // These original callback bodies intentionally return 1 without work.
     case callback_id::BombDraw:case callback_id::EffectsUpdate:case callback_id::EffectsDraw:case callback_id::EnemiesDraw:case callback_id::HintsDraw:result=1;break;

@@ -10,6 +10,14 @@ const bullets=read('th10_web/cpp/game/BulletFrame.cpp');
 const items=read('th10_web/cpp/game/ItemDraw.cpp');
 const lasers=read('th10_web/cpp/game/LaserFrame.cpp');
 const high=read('th10_web/cpp/game/HighRefresh.hpp');
+const startup=read('th10_web/cpp/game/StartupScreen.cpp');
+const effects=read('th10_web/cpp/platform/ScreenEffects.cpp');
+const backgrounds=read('th10_web/cpp/platform/Backgrounds.cpp');
+const popupGame=read('th10_web/cpp/game/ScorePopups.cpp');
+const popupPlatform=read('th10_web/cpp/platform/WorldPopups.cpp');
+const resultsDraw=read('th10_web/cpp/game/ResultsDraw.cpp');
+const guiDraw=read('th10_web/cpp/game/GuiDraw.cpp');
+const hud=read('th10_web/cpp/platform/Hud.cpp');
 
 // rAF may schedule extra presentation frames, but authoritative simulation is
 // still Application::step(true) under the fixed 60 Hz cadence.
@@ -18,7 +26,10 @@ assert.match(host,/for\(unsigned i=0;i<ticks&&!result;\+\+i\).*application->step
 assert.match(host,/sdl_defer\(1\)/);
 assert.match(host,/application->presentation_draw\(alpha,interpolate,!frozen\)/);
 assert.match(host,/session_flags&0x74/);
-assert.match(host,/screen==4\|\|screen==7/);
+assert.match(host,/screen==1\|\|screen==4\|\|screen==7\|\|screen==14/);
+assert.match(startup,/if\(!high_refresh::render_only\).*opening_ready.*elapsed=wrapping_add/s);
+assert.match(effects,/previous_alpha\[&effect\]=effect\.alpha/);
+assert.match(effects,/high_refresh::lerp\(float\(found->second\),float\(effect\.alpha\)\)/);
 
 // Extra display frames replay only the draw chain. They must not enter
 // engine.update_all(), FrameStatistics::draw(), or Presentation::submit().
@@ -29,13 +40,39 @@ assert.doesNotMatch(presentationDraw,/update_all\(|clock\.step|\.submit\(\)/);
 assert.match(app,/if\(high_refresh::render_only\).*presentation_fps/s);
 assert.match(app,/statistics->draw\(rates\)/);
 
-// Generic ANM interpolation is deliberately position-only. Broad ANM
-// scale/rotation/color/UV interpolation is forbidden.
+// Generic ANM presentation is field-aware: position is lifecycle-gated, while
+// scale/rotation/color/UV may only smooth fields that the authored ANM is
+// already advancing continuously through an interpolator or velocity.
 assert.match(anim,/snapshot_presentation\(\)/);
 assert.match(anim,/copy\.position=mix/);
 assert.match(anim,/copy\.script_position=mix/);
 assert.match(anim,/copy\.child_position=mix/);
-for(const field of ['scale','rotation','color','uv'])assert.doesNotMatch(anim,new RegExp(`copy\\.${field}\\s*=.*high_refresh::lerp`));
+assert.match(anim,/continuous_fields\(const AnmVm& vm\)/);
+assert.match(anim,/rotation_interpolation\.duration>0\|\|vm\.angular_velocity/);
+assert.match(anim,/scale_interpolation\.duration>0\|\|vm\.scale_velocity/);
+assert.match(anim,/color_interpolation\.duration>0/);
+assert.match(anim,/alpha_interpolation\.duration>0/);
+assert.match(anim,/presentation_previous\.try_emplace\(&vm,presentation_sample\(vm\)\)/);
+assert.match(anim,/before\.visible!=\(source\.flags&3u\)/);
+assert.match(anim,/source\.script_timer\.current<before\.script_time/);
+assert.match(anim,/before\.sprite_index==source\.sprite_index/);
+assert.match(anim,/continuous&64/);
+assert.match(backgrounds,/engine\.present\(copy\.script_animations\[i\],stage\.script_animations\[i\]\)/);
+assert.match(backgrounds,/engine\.present\(animations\[i\],stage\.object_animations\[i\]\)/);
+
+// Owner-side non-ANM motion still needs explicit endpoints. Score popups keep
+// discrete sprite-age thresholds but smooth their continuously moving position
+// (and the authored first-eight-frame spacing), while Results keeps state gates
+// discrete and only smooths the direct text slide coordinate.
+assert.match(popupPlatform,/popup_presentation\[i\]=\{p\.position,p\.elapsed\.fractional,p\.elapsed\.current,p\.active,p\.length\}/);
+assert.match(popupPlatform,/high_refresh::lerp_world\(before\.position\.y,popup\.position\.y\)/);
+assert.match(popupGame,/env\.presentation\(popup,position,elapsed\)/);
+assert.match(resultsDraw,/displayed_elapsed\(const Timer& timer\)/);
+assert.match(resultsDraw,/number\(displayed_elapsed\(elapsed\)\)/);
+assert.match(guiDraw,/presentation_timer\(env\.game->faith_timer\)/);
+assert.match(guiDraw,/env\.presentation_boss_health\(displayed_boss_health\)/);
+assert.match(hud,/previous_boss_health=gui\.displayed_boss_health/);
+assert.match(hud,/owner\.actors\.enemies->bosses\[0\]!=owner\.previous_boss/);
 
 // Embedded gameplay owners use copies/sidecars rather than writing
 // presentation values back into authoritative ABI state.

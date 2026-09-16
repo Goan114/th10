@@ -1,7 +1,12 @@
 #include "ResultsDraw.hpp"
+#include "HighRefresh.hpp"
 namespace th10 {
 static u32 text_address(const char* text){return reinterpret_cast<uintptr_t>(text);}
 static u32 selected_color(bool selected){return selected?0xffffff00:0xff808080;}
+static float displayed_elapsed(const Timer& timer){
+    if(!high_refresh::active||timer.current<=0||timer.current-timer.previous>2)return timer.fractional;
+    return high_refresh::lerp(float(timer.previous),timer.fractional);
+}
 // 0x4224c0. The final three cells use the font's special control glyphs.
 void Results::draw_name(Vec3 position,ResultsDrawEnvironment& env) const {
     const i32 length=std::strlen(env.alphabet);env.print(position,"%s",{text_address(name)});
@@ -21,7 +26,7 @@ i32 Results::draw(ResultsDrawEnvironment& env) const {
             else{const auto* info=preview->info;const auto date=env.local_date(info->timestamp);env.print(position,"No.%.2d %s %.2d/%.2d/%.2d %s %s %s",{static_cast<u32>(i+1),text_address(info->name),static_cast<u32>(date.year%100),static_cast<u32>(date.month+1),static_cast<u32>(date.day),text_address(env.characters[info->character*3+info->shot_type]),text_address(env.difficulties[info->difficulty]),text_address(env.replay_stage_names[info->last_stage])});}
             position.y=Scalar::add(position.y,15);}*env.color=0xffffffff;
     }else if(state==11||state==18){
-        position={102,224,0};if(elapsed.current<10){const auto from=Extended::from_int(menu.selected)*number(15)+number(64);position.y=((number(224)-from)*Extended::from_int(elapsed.current)*number(.1f)+from).to_float();}
+        position={102,224,0};if(elapsed.current<10){const auto from=Extended::from_int(menu.selected)*number(15)+number(64);position.y=((number(224)-from)*number(displayed_elapsed(elapsed))*number(.1f)+from).to_float();}
         draw_name(position,env);position.x=48;const auto* info=(*env.replay)->info;const auto date=env.local_date(info->timestamp);
         env.print(position,"No.%.2d          %.2d/%.2d/%.2d %s %s %s",{static_cast<u32>(menu.selected+1),static_cast<u32>(date.year%100),static_cast<u32>(date.month+1),static_cast<u32>(date.day),text_address(env.characters[info->character*3+info->shot_type]),text_address(env.difficulties[info->difficulty]),text_address(env.replay_stage_names[env.game->stage])});
     }else if(state==12||state==19){

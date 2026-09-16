@@ -39,7 +39,8 @@ i32 Backgrounds::update(Stage& stage){snapshot(stage);return stage.update(script
 i32 Backgrounds::draw(Stage& stage,bool foreground){
     BackgroundDraw draw(*this);if(!high_refresh::render_only){StageRenderer renderer{stage,draw};return foreground?renderer.draw_foreground():renderer.draw_background();}
     Stage copy=stage;copy.camera=presentation_camera(stage);
-    std::vector<AnmVm> animations;const i32 count=stage.file?stage.file->primitive_count:0;if(stage.object_animations&&count>0){animations.assign(stage.object_animations,stage.object_animations+count);copy.object_animations=animations.data();}
+    for(u32 i=0;i<8;++i)engine.present(copy.script_animations[i],stage.script_animations[i]);
+    std::vector<AnmVm> animations;const i32 count=stage.file?stage.file->primitive_count:0;if(stage.object_animations&&count>0){animations.assign(stage.object_animations,stage.object_animations+count);for(i32 i=0;i<count;++i)engine.present(animations[i],stage.object_animations[i]);copy.object_animations=animations.data();}
     std::vector<u8> flags;if(stage.file&&stage.objects&&stage.file->object_count>0){flags.resize(stage.file->object_count);for(i32 i=0;i<stage.file->object_count;++i)flags[i]=stage.objects[i]->flags;}
     StageRenderer renderer{copy,draw};const i32 result=foreground?renderer.draw_foreground():renderer.draw_background();for(i32 i=0;i<i32(flags.size());++i)stage.objects[i]->flags=flags[i];return result;
 }

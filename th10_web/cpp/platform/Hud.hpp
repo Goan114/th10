@@ -36,6 +36,7 @@ struct HudFrame final:GuiFrameEnvironment,GuiDrawEnvironment {
     i32 update_dialogue(Dialogue&) override;void release_dialogue(Dialogue*) override;
     void play_sound(i32) override;void draw_animation(AnmVm&) override;
     void rectangle(const ScreenRect&,u32) override;
+    float presentation_boss_health(float current) override;
 };
 struct HudScore final:GuiScoreEnvironment {
     Hud& owner;explicit HudScore(Hud&);
@@ -58,6 +59,7 @@ struct Hud final:GuiResourceEnvironment,CallbackReceiver {
     GameState& state;GameActors& actors;AnimationEngine& engine;Common& common;Fonts& fonts;
     Input& input;Audio& audio;Scores& records;ScreenEffects& screen_effects;HudActions& actions;
     UpdateChain* update_chain;u8* message_cache=nullptr;char resource_name[260]{};u32 difficulty_visible=0;i32 error=0;
+    float previous_boss_health=0;Enemy* previous_boss=nullptr;bool boss_presentation_valid=false;
     Hud(GameState&,GameActors&,AnimationEngine&,Common&,Fonts&,Input&,Audio&,Scores&,ScreenEffects&,HudActions&);
     ~Hud();
     bool initialize();void activate();void shutdown();void bind_callbacks(Callbacks&) override;

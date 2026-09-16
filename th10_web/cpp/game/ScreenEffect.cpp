@@ -74,7 +74,7 @@ i32 ScreenEffect::draw(ScreenEffectEnvironment& env){
 i32 ScreenEffect::draw_region(ScreenEffectEnvironment& env,bool full,bool set_viewport,bool flash){
     if(set_viewport)env.fullscreen_viewport();
     const auto color=flash?static_cast<u32>(parameters[1])&0xffffff:static_cast<u32>(parameters[0]);
-    env.rectangle(full?ScreenRect{0,0,640,480}:ScreenRect{32,16,416,464},(static_cast<u32>(alpha)<<24)|color);return 1;
+    env.rectangle(full?ScreenRect{0,0,640,480}:ScreenRect{32,16,416,464},(static_cast<u32>(env.presentation_alpha(*this))<<24)|color);return 1;
 }
 // 0x43bda0 / 0x43bfa0. Four untextured vertices form a triangle strip.
 void draw_screen_rectangle(const ScreenRect& rect,const u32 colors[4],AnmManager** manager,AnmRenderEnvironment& env){

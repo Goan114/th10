@@ -42,5 +42,6 @@ struct ScorePopupEnvironment {
     virtual void flush()=0;
     virtual void disable_fog()=0;
     virtual void draw_animation(AnmVm& vm)=0;
+    virtual bool presentation(const ScorePopup& popup,Vec3& position,float& elapsed)=0;
 };
 }
