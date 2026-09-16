@@ -80,7 +80,7 @@ EXPORT("sdl_key") void sdl_key(const char* code,u32 down){for(auto& k:keyboard_m
 EXPORT("sdl_keys_clear") void sdl_keys_clear(){for(auto& k:keyboard_map)k.hosted=false;gestures.reset();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
 EXPORT("sdl_touch") void sdl_touch(u32 type,i32 id,float x,float y){touch(type,id,x,y);}
 EXPORT("sdl_touch_cancel") void sdl_touch_cancel(){cancel();}
-EXPORT("sdl_touch_options") void sdl_touch_options(u32 on,u32 free,float speed){gestures.enabled=on;gestures.unlimited=free;gestures.sensitivity=std::clamp(speed,.1f,5.f);if(!on)cancel();}
+EXPORT("sdl_touch_options") void sdl_touch_options(u32 on,u32 free,float speed){gestures.enabled=on;gestures.unlimited=free;gestures.sensitivity=std::clamp(speed,1.f,3.f);if(!on)cancel();}
 EXPORT("sdl_touch_gestures") void sdl_touch_gestures(u32 two,u32 taps){gestures.two_finger=two;gestures.double_tap=taps;}
 EXPORT("sdl_touch_mode") void sdl_touch_mode(u32 mode){if(gestures.set_mode(static_cast<int>(mode))&&session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
 EXPORT("sdl_touch_controls") void sdl_touch_controls(u32 shoot,u32 slow,u32 bomb,u32 escape,float x,float y){gestures.controls(shoot,slow,bomb,escape,x,y);}
