@@ -27,6 +27,10 @@ std::string decode(const char* bytes,u32 length,u32 charset){std::string result;
     for(u32 i=0;i<length;i++){u32 code=data[i];const bool lead=charset==134?(code>=0x81&&code<=0xfe):((code>=0x81&&code<=0x9f)||(code>=0xe0&&code<=0xfc));if(lead&&i+1<length&&data[i+1])code=(code<<8)|data[++i];const auto c=u32(map[code*2])|(u32(map[code*2+1])<<8);utf8(result,c);}
     return result;
 }
+u32 blend_channel_4444(u32 before,u32 target,u32 coverage){
+    const u32 source=(target*15+127)/255;
+    return (before*(255-coverage)+source*coverage+127)/255;
+}
 }
 extern "C" {
 u32 fonts_bitmap(const BitmapDescription* d,u8** out){const auto* bytes=reinterpret_cast<const u8*>(d);i32 width,height;u16 bpp;std::memcpy(&width,bytes+4,4);std::memcpy(&height,bytes+8,4);std::memcpy(&bpp,bytes+14,2);height=std::abs(height);if(width<=0||height<=0||bpp!=16||uint64_t(width)*height>16777216)return 0;
@@ -45,9 +49,14 @@ void fonts_text(u32 id,i32 x,i32 y,const char* bytes,u32 length){auto& dc=get(id
     if(!f.raster||f.text!=value){const SDL_Color white{255,255,255,255};auto* original=TTF_RenderText_Blended(f.face,value.c_str(),value.size(),white);if(!original){failures++;return;}auto* raster=SDL_ConvertSurface(original,SDL_PIXELFORMAT_RGBA32);SDL_DestroySurface(original);if(!raster){failures++;return;}if(f.raster)SDL_DestroySurface(f.raster);f.raster=raster;f.text=value;}
     const auto* raster=f.raster;
     const auto r=dc.color&255,g=(dc.color>>8)&255,blue=(dc.color>>16)&255;const auto* pixels=static_cast<const u8*>(raster->pixels);
-    for(int j=0;j<raster->h;j++){const int row=y+j;if(row<0||row>=b.height)continue;for(int i=0;i<raster->w;i++){const int column=x+i;if(column<0||column>=b.width)continue;const auto coverage=(u32(pixels[j*raster->pitch+i*4+3])*15+127)/255;if(!coverage)continue;
-        auto* target=b.pixels.data()+row*b.pitch+column*2;const u32 before=target[0]|(u32(target[1])<<8),base=coverage*8192;
-        const u16 result=u16((blend[base+((before>>10)&31)*256+r]<<10)|(blend[base+((before>>5)&31)*256+g]<<5)|blend[base+(before&31)*256+blue]);target[0]=u8(result);target[1]=u8(result>>8);
+    for(int j=0;j<raster->h;j++){const int row=y+j;if(row<0||row>=b.height)continue;for(int i=0;i<raster->w;i++){const int column=x+i;if(column<0||column>=b.width)continue;const u32 coverage=pixels[j*raster->pitch+i*4+3];if(!coverage)continue;
+        auto* target=b.pixels.data()+row*b.pitch+column*2;const u32 before=target[0]|(u32(target[1])<<8);
+        // The original GDI target is A4R4G4B4. TextOut writes antialiased RGB
+        // into the low 12 bits and clears the alpha nibble on touched pixels;
+        // TextRaster::draw() flips that nibble afterwards. Keep the channels
+        // separate here instead of treating the DIB as RGB555, which creates
+        // the visible red/green/blue fringe around otherwise white text.
+        const u16 result=u16((blend_channel_4444((before>>8)&15,r,coverage)<<8)|(blend_channel_4444((before>>4)&15,g,coverage)<<4)|blend_channel_4444(before&15,blue,coverage));target[0]=u8(result);target[1]=u8(result>>8);
     }}
 }
 __attribute__((export_name("sdl_fonts_errors"))) u32 sdl_fonts_errors(){return failures;}
