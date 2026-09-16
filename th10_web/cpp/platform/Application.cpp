@@ -1,7 +1,9 @@
 #include "../game/CallbackNames.hpp"
+#include "../game/HighRefresh.hpp"
 #include "Application.hpp"
 #include <new>
 #include <cstdlib>
+#include <cstdio>
 namespace th10::browser {
 namespace {
 #ifdef TH_SDL3
@@ -63,6 +65,39 @@ i32 Application::step(bool scheduled_tick){
     if(writer_pending){writer_pending=false;Screenshot{screenshots}.write();}
     if(result){stopped=true;save();}return result;
 }
+bool Application::presentation_draw(float alpha,bool interpolate,bool world_interpolate){
+    if(stopped||!initialized||error)return false;
+    const auto saved_world=engine.world,saved_ui=engine.ui;auto* saved_active=engine.active;
+    const auto saved_value_world=value.world_camera,saved_value_ui=value.ui_camera;auto* saved_value_active=value.active_camera;
+    const u32 saved_screen_space=engine.screen_space,saved_fog=engine.fog_enabled,saved_graphics=graphics_state;
+    const auto saved_reserved=manager->reserved_050,saved_submitted=manager->submitted_draws,saved_started=manager->started_scripts,saved_flushed=manager->flushed_batches;
+    AnmVm saved_characters{},saved_small{};i32 saved_text_count=0,saved_early_count=0;u32 saved_text_color=0;Vec2 saved_text_scale{};i32 saved_text_camera=0,saved_text_shadow=0;
+    if(common_view){saved_characters=common_view->characters;saved_small=common_view->small_characters;saved_text_count=common_view->text_count;saved_early_count=common_view->early_text_count;saved_text_color=common_view->color;saved_text_scale=common_view->scale;saved_text_camera=common_view->camera;saved_text_shadow=common_view->shadow;}
+    high_refresh::begin(alpha,interpolate,true,world_interpolate);
+    engine.flush();value.active_camera=&value.ui_camera;configure_camera(value.ui_camera,true);engine.device.viewport(value.active_camera->viewport);value.screen_space=1;
+    bool presented=false;
+    if(engine.device.begin_scene()>=0){
+        auto& animations=*manager;animations.batch_quads=0;animations.vertex_write=animations.batch_start=animations.vertex_buffer;graphics_state=255;
+        u32 fog=saved_fog;ApplicationLoop::disable_fog(value,fog,loop);engine.draw_all();engine.flush();engine.device.texture(nullptr);engine.device.end_scene();presented=engine.device.present_frame()>=0;
+    }
+    engine.world=saved_world;engine.ui=saved_ui;engine.active=saved_active;engine.screen_space=saved_screen_space;engine.fog_enabled=saved_fog;graphics_state=saved_graphics;
+    manager->reserved_050=saved_reserved;manager->submitted_draws=saved_submitted;manager->started_scripts=saved_started;manager->flushed_batches=saved_flushed;
+    if(common_view){common_view->characters=saved_characters;common_view->small_characters=saved_small;common_view->text_count=saved_text_count;common_view->early_text_count=saved_early_count;common_view->color=saved_text_color;common_view->scale=saved_text_scale;common_view->camera=saved_text_camera;common_view->shadow=saved_text_shadow;}
+    value.world_camera=saved_value_world;value.ui_camera=saved_value_ui;value.active_camera=saved_value_active;high_refresh::end();return presented;
+}
+void Application::presentation_frame(){
+    const double now=time().to_double();if(!presentation_origin){presentation_origin=now;presentation_frames=0;}++presentation_frames;const double elapsed=now-presentation_origin;if(elapsed<.5)return;
+    presentation_fps=float(double(presentation_frames)/elapsed);presentation_origin=now;presentation_frames=0;
+}
+i32 Application::draw_statistics(){
+    if(high_refresh::render_only){
+        if(state.pending_screen!=14&&common_view){
+            const u32 color=presentation_fps<30?0xff5050ff:presentation_fps<40?0xffa0a0ff:0xffffffff;
+            for(i32 i=common_view->text_count-1;i>=0;--i){auto& entry=common_view->text[i];if(entry.position.x==590&&entry.position.y==470){std::snprintf(entry.text,sizeof(entry.text),"%.2ffps",presentation_fps);entry.color=color;break;}}
+        }return 1;
+    }
+    statistics->actual_ticks=state.active_time;statistics->expected_ticks=state.total_time;const auto result=statistics->draw(rates);state.active_time=statistics->actual_ticks;state.total_time=statistics->expected_ticks;if(world)world->measured_fps=statistics->frames_per_second;return result;
+}
 void Application::save(){
     config.save("th10.cfg",state.configuration);if(startup&&startup->scores)startup->scores->save();
 }
@@ -84,7 +119,7 @@ bool Application::invoke(CallbackToken token,void*,i32& result){
     case callback_id::ApplicationBeginDraw:value.ui_camera=engine.ui;result=ApplicationFrame{value,frames}.begin_draw();return true;
     case callback_id::ApplicationDrawBarrier:result=1;return true;
     case callback_id::ApplicationFinishDraw:result=ApplicationFrame{value,frames}.finish_draw();return true;
-    case callback_id::FrameStatisticsDraw:statistics->actual_ticks=state.active_time;statistics->expected_ticks=state.total_time;result=statistics->draw(rates);state.active_time=statistics->actual_ticks;state.total_time=statistics->expected_ticks;if(world)world->measured_fps=statistics->frames_per_second;return true;
+    case callback_id::FrameStatisticsDraw:result=draw_statistics();return true;
     default:return false;
     }
 }
@@ -116,6 +151,6 @@ void Application::bind_callbacks(Callbacks& b){callback_context=this;
  b.bind(callback_id::ApplicationBeginDraw,this,[](void* p,void*,i32){auto& s=*static_cast<Application*>(p);s.value.ui_camera=s.engine.ui;return ApplicationFrame{s.value,s.frames}.begin_draw();});
  b.bind(callback_id::ApplicationDrawBarrier,this,[](void*,void*,i32){return 1;});
  b.bind(callback_id::ApplicationFinishDraw,this,[](void* p,void*,i32){auto& s=*static_cast<Application*>(p);return ApplicationFrame{s.value,s.frames}.finish_draw();});
- b.bind(callback_id::FrameStatisticsDraw,this,[](void* p,void*,i32){auto& s=*static_cast<Application*>(p);s.statistics->actual_ticks=s.state.active_time;s.statistics->expected_ticks=s.state.total_time;const auto result=s.statistics->draw(s.rates);s.state.active_time=s.statistics->actual_ticks;s.state.total_time=s.statistics->expected_ticks;if(s.world)s.world->measured_fps=s.statistics->frames_per_second;return result;});
+ b.bind(callback_id::FrameStatisticsDraw,this,[](void* p,void*,i32){return static_cast<Application*>(p)->draw_statistics();});
 }
 }

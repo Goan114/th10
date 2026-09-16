@@ -1,7 +1,9 @@
 #include "TitleClear.hpp"
 #include "TitleReplays.hpp"
 #include "TitleScores.hpp"
+#include "HighRefresh.hpp"
 namespace th10 {
+namespace {float displayed_elapsed(const Timer& t){if(!high_refresh::active||t.current<=0||t.current-t.previous>2)return t.fractional;return high_refresh::lerp(float(t.previous),t.fractional);}}
 void TitleClear::set_stage(i32 stage){auto& env=environment;env.game->stage=env.game->reserved_040=stage;*env.current_stage=env.stages+stage;}
 void TitleClear::initialize_name(){
     auto& t=title;auto& env=environment;t.replay_menu.select(0);t.replay_menu.item_count=std::strlen(env.alphabet);t.replay_menu.wrap=1;
@@ -105,7 +107,7 @@ i32 draw_title_clear_save(const TitleMenu& t,ResultsDrawEnvironment& env,const c
     if(t.phase==2)return draw_title_replays(t,env,difficulties);
     if(t.phase!=3)return 1;
     Vec3 position{58,240,0};
-    if(t.elapsed.current<10)position.y=((Extended::from_int(static_cast<i32>(static_cast<u32>(t.replay_index)*15u+80u))-number(240.0f))*(number(10.0f)-number(t.elapsed.fractional))*number(.1f)+number(240.0f)).to_float();
+    if(t.elapsed.current<10)position.y=((Extended::from_int(static_cast<i32>(static_cast<u32>(t.replay_index)*15u+80u))-number(240.0f))*(number(10.0f)-number(displayed_elapsed(t.elapsed)))*number(.1f)+number(240.0f)).to_float();
     ReplayInfo display=*(*env.replay)->info;std::memcpy(display.name,"        ",9);display.last_stage=8;
     draw_replay_description(display,t.replay_index+1,position,env,difficulties);
     if(t.elapsed.current>=10)draw_name(t,{112,240,0},env);

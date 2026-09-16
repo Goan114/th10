@@ -1,5 +1,6 @@
 #include "LaserBehavior.hpp"
 #include "GameMath.hpp"
+#include "HighRefresh.hpp"
 namespace th10 {
 namespace {
 void seek(Timer& timer,u32& flags,i32 value,const float* rate){
@@ -38,9 +39,11 @@ void animate(EnemyLaser& laser,AnmVm& beam,AnmVm& tip,LaserBehaviorEnvironment& 
     beam.update(*env.animations);if(laser.distance_travelled==0.f)tip.update(*env.animations);
 }
 i32 draw_laser(EnemyLaser& laser,AnmVm& beam,AnmVm& tip,LaserBehaviorEnvironment& env){
-    beam.script_position={Scalar::add(laser.position.x,224.f),Scalar::add(laser.position.y,16.f),laser.position.z};
-    beam.rotation.z=add_angle(laser.angle,1.57079637050628662109375f).to_float();beam.flags|=4;env.submit(beam);
-    if(laser.distance_travelled==0.f){tip.script_position={Scalar::add(laser.position.x,224.f),Scalar::add(laser.position.y,16.f),laser.position.z};env.submit(tip);}
+    Vec3 position=laser.position;float angle=laser.angle,length=laser.length,width=laser.width;AnmVm beam_copy,tip_copy;AnmVm* draw_beam=&beam,*draw_tip=&tip;
+    if(high_refresh::render_only){beam_copy=beam;tip_copy=tip;draw_beam=&beam_copy;draw_tip=&tip_copy;}const bool interpolated=env.presentation(laser,position,angle,length,width);if(interpolated&&draw_beam->sprite){draw_beam->scale.x=Scalar::div(width,draw_beam->sprite->width);draw_beam->scale.y=Scalar::div(length,draw_beam->sprite->height);draw_beam->flags|=8;}
+    draw_beam->script_position={Scalar::add(position.x,224.f),Scalar::add(position.y,16.f),position.z};
+    draw_beam->rotation.z=add_angle(angle,1.57079637050628662109375f).to_float();draw_beam->flags|=4;env.submit(*draw_beam);
+    if(laser.distance_travelled==0.f){draw_tip->script_position={Scalar::add(position.x,224.f),Scalar::add(position.y,16.f),position.z};env.submit(*draw_tip);}
     return 0;
 }
 }

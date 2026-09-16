@@ -14,6 +14,8 @@ struct AnimationEngine final:AnmEnvironment,AnmAllocationEnvironment,AnmSystemEn
     u32 screen_space=1,fog_enabled=0;Vec3 tangent{};
     AnmVertex24 initial_vertices[4]{},model_template[4]{};AnmVertex vertices[4]{};
     UpdateChain chain_value{};Callbacks callback_environment;AnimationResources resources;
+    struct PresentationVmSample {u32 id=0;std::int16_t script_index=-1;AnmFile* file=nullptr;Vec3 position{},script_position{},child_position{};};
+    std::map<const AnmVm*,PresentationVmSample> presentation_previous;
 #ifndef TH_NATIVE_PLATFORM
     CallbackReceiver* application_callbacks=nullptr;
     CallbackReceiver* receivers[16]{};
@@ -44,6 +46,6 @@ struct AnimationEngine final:AnmEnvironment,AnmAllocationEnvironment,AnmSystemEn
     void unlock_model_buffer(void*) override;
     void bind_model_buffer(void*) override;
     void begin_frame();void flush();i32 update_all();i32 draw_all();
-    i32 draw_layer(u32);void configure_camera(bool flat);
+    i32 draw_layer(u32);void configure_camera(bool flat);void snapshot_presentation();
 };
 }

@@ -1,5 +1,6 @@
 #include "BulletFrame.hpp"
 #include "GameMath.hpp"
+#include "HighRefresh.hpp"
 namespace th10 {
 namespace {
 void reset_timer(Timer& timer,u32& flags,const float* rate){if(!(flags&1)){flags|=1;timer.rate=rate;}timer.initialize(-1);}
@@ -69,10 +70,11 @@ i32 EnemyBulletManager::update(BulletFrameEnvironment& env){
 // 0x4066e0 / 0x4066c0.
 i32 EnemyBulletManager::draw_layer(i32 layer,BulletFrameEnvironment& env){
     for(auto* bullet=draw_heads[layer];bullet;bullet=bullet->draw_next){
-        auto& vm=bullet->animation;const auto& point=bullet->motion.position;
-        vm.script_position={Scalar::add(point.x,224.f),Scalar::add(point.y,16.f),point.z};
-        if(vm.flags&0x8000000){vm.rotation.z=add_angle(bullet->motion.angle,1.57079637050628662109375f).to_float();vm.flags|=4;}
-        env.submit(vm);
+        auto& source=bullet->animation;Vec3 point=bullet->motion.position;float angle=bullet->motion.angle;AnmVm copy;AnmVm* vm=&source;
+        if(high_refresh::render_only){copy=source;vm=&copy;}env.presentation(*bullet,point,angle);
+        vm->script_position={Scalar::add(point.x,224.f),Scalar::add(point.y,16.f),point.z};
+        if(vm->flags&0x8000000){vm->rotation.z=add_angle(angle,1.57079637050628662109375f).to_float();vm->flags|=4;}
+        env.submit(*vm);
     }
     return 1;
 }

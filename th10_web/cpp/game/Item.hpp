@@ -52,6 +52,7 @@ struct ItemFrameEnvironment : ItemEnvironment,EconomyEnvironment {
 struct ItemDrawEnvironment {
     virtual void bind_item_sprite(AnmVm& vm,i32 sprite)=0;
     virtual void draw_animation(AnmVm& vm)=0;
+    virtual bool presentation(const Item& item,Vec3& position)=0;
 };
 struct ItemManager {
     u32 flags,manager_state;

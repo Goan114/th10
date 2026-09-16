@@ -5,6 +5,7 @@
 #include "../game/PlayerOptions.hpp"
 #include "../game/PlayerDraw.hpp"
 #include "../game/BombEnvironment.hpp"
+#include "../game/HighRefresh.hpp"
 #include <cstdlib>
 namespace th10::browser {
 namespace {
@@ -104,12 +105,13 @@ bool World::create_player(){Resources env(*this);return PlayerResources::create(
 void World::destroy_player(Player* player){Resources env(*this);PlayerResources{*player,env}.shutdown();std::free(player);}
 void World::activate_player(){Resources env(*this);PlayerResources{*actors.player,env}.activate();}
 void World::configure_player(){PlayerOptionsEnvironment env{&state.game,&engine.manager,&engine,&engine,actors.player,callback_id::PlayerOptionInitialize,callback_id::PlayerOptionUpdate};actors.player->reconfigure_options(env);}
-i32 World::update_player(){Frame env(*this);return actors.player->update(env);}
+i32 World::update_player(){auto& p=*actors.player;player_presentation={p.position,p.state,true};Frame env(*this);return p.update(env);}
 i32 World::draw_player(){
-    Draw env(*this);const i32 result=actors.player->draw(env);
-    auto& player=*actors.player;
+    Draw env(*this);auto& player=*actors.player;Player copy;Player* draw=&player;
+    if(high_refresh::render_only){copy=player;draw=&copy;if(high_refresh::active&&player_presentation.valid&&player_presentation.state==player.state){const float dx=player.position.x-player_presentation.position.x,dy=player.position.y-player_presentation.position.y;if(dx*dx+dy*dy<16384.0f)copy.position={high_refresh::lerp_world(player_presentation.position.x,player.position.x),high_refresh::lerp_world(player_presentation.position.y,player.position.y),high_refresh::lerp_world(player_presentation.position.z,player.position.z)};}}
+    const i32 result=draw->draw(env);
     if(always_hitbox&&player.state==1){
-        const float x=player.position.x+224,y=player.position.y+16,hx=player.hitbox_half_size.x,hy=player.hitbox_half_size.y;
+        const float x=draw->position.x+224,y=draw->position.y+16,hx=player.hitbox_half_size.x,hy=player.hitbox_half_size.y;
         rectangle({x-hx-1,y-hy-1,x+hx+1,y+hy+1},0xff202020);
         rectangle({x-hx,y-hy,x+hx,y+hy},0xffeeeeee);
     }

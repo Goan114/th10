@@ -3,6 +3,7 @@
 #include "ScreenEffects.hpp"
 #include "../game/StageResources.hpp"
 #include "../game/StageRenderer.hpp"
+#include <array>
 namespace th10::browser {
 struct Backgrounds;
 struct BackgroundScript final : StageEnvironment {
@@ -24,11 +25,17 @@ struct BackgroundDraw final : StageRenderEnvironment {
 struct Backgrounds final : StageResourceEnvironment,CallbackReceiver {
     GameState& state;AnimationEngine& engine;ScreenEffects& effects;FileSystem& files;
     Stage* current=nullptr;Stage* previous=nullptr;char source_name[260]{};i32 error=0;
+    struct PresentationStage {Stage* owner=nullptr;Camera camera{};bool valid=false;};
+    std::array<PresentationStage,2> presentation{};
     BackgroundScript script;
     Backgrounds(GameState&,AnimationEngine&,ScreenEffects&,FileSystem&);
     ~Backgrounds();
     Stage* create(const char* name,i32 offset=0);
     void destroy(Stage*);
+    i32 update(Stage&);
+    i32 draw(Stage&,bool foreground);
+    void snapshot(Stage&);
+    Camera presentation_camera(const Stage&)const;
     void bind_callbacks(Callbacks&) override;
 #ifndef TH_NATIVE_PLATFORM
     bool invoke(CallbackToken,void*,i32&) override;

@@ -1,6 +1,8 @@
 #include "TitleReplays.hpp"
+#include "HighRefresh.hpp"
 #include <cstring>
 namespace th10 {
+namespace {float displayed_elapsed(const Timer& t){if(!high_refresh::active||t.current<=0||t.current-t.previous>2)return t.fractional;return high_refresh::lerp(float(t.previous),t.fractional);}}
 void replay_slot_filename(char (&filename)[12],i32 slot) noexcept {
     std::memcpy(filename,"th10_00.rpy",11);filename[11]=0;filename[5]='0'+slot/10;filename[6]='0'+slot%10;
 }
@@ -67,7 +69,7 @@ i32 draw_title_replays(const TitleMenu& t,ResultsDrawEnvironment& env,const char
         }
     }else if(t.phase==4){
         const auto* info=t.previews[t.replay_index]->info;Vec3 position{80,80,0};
-        if(t.elapsed.current<10)position.y=((number(10.0f)-number(t.elapsed.fractional))*Extended::from_int(static_cast<i32>(static_cast<u32>(t.replay_index)*15u))*number(.1f)+number(80.0f)).to_float();
+        if(t.elapsed.current<10)position.y=((number(10.0f)-number(displayed_elapsed(t.elapsed)))*Extended::from_int(static_cast<i32>(static_cast<u32>(t.replay_index)*15u))*number(.1f)+number(80.0f)).to_float();
         *env.text_mode=1;draw_replay_description(*info,t.replay_index+1,position,env,difficulties);
         if(t.elapsed.current>=10){
             position={220,128,0};for(i32 stage=1;stage<8;++stage){

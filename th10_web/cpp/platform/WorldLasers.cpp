@@ -1,6 +1,7 @@
 #include "World.hpp"
 #include "GameplayData.hpp"
 #include "../game/LaserBehavior.hpp"
+#include "../game/HighRefresh.hpp"
 #include <cstdlib>
 namespace th10::browser {
 namespace {
@@ -19,6 +20,11 @@ struct Behavior final:LaserBehaviorEnvironment {
     void cancel_effect(i32 script,const Vec3& p) override{w.effect(*animation_file,script,p);}
     void spawn_faith(const Vec3& p) override{w.spawn_item(p,8,0xffffffff,-1.5707964f,.6f);}
     void submit(AnmVm& vm) override{w.engine.draw(vm);}
+    bool presentation(const EnemyLaser& laser,Vec3& position,float& angle,float& length,float& width) override{
+        if(!high_refresh::render_only||!high_refresh::active)return false;const auto found=w.laser_presentation.find(&laser);if(found==w.laser_presentation.end())return false;const auto& before=found->second;
+        const float dx=laser.position.x-before.position.x,dy=laser.position.y-before.position.y;if(before.id!=laser.id||before.state!=laser.state||before.kind!=laser.original_virtual_table||dx*dx+dy*dy>=16384.0f)return false;
+        position={high_refresh::lerp_world(before.position.x,laser.position.x),high_refresh::lerp_world(before.position.y,laser.position.y),high_refresh::lerp_world(before.position.z,laser.position.z)};constexpr float pi=3.1415927410125732f,tau=6.2831854820251465f;float delta=laser.angle-before.angle;if(delta>pi)delta-=tau;else if(delta<-pi)delta+=tau;angle=normalize_angle(before.angle+delta*high_refresh::world_alpha).to_float();length=high_refresh::lerp_world(before.length,laser.length);width=high_refresh::lerp_world(before.width,laser.width);return true;
+    }
 };
 struct Lasers final:LaserEnvironment {
     World& w;explicit Lasers(World& world):w(world){default_rate=&w.engine.speed;straight_methods=straight_kind;timed_methods=timed_kind;}
@@ -35,7 +41,7 @@ struct Lasers final:LaserEnvironment {
 }
 void World::destroy_laser(EnemyLaser& laser){Lasers env(*this);env.destroy_laser(laser);}
 void World::clear_lasers(){Lasers env(*this);actors.lasers->clear(env);}
-i32 World::update_lasers(){Lasers env(*this);return actors.lasers->tick(actors.session->session_flags,engine.speed,env);}
+i32 World::update_lasers(){laser_presentation.clear();for(auto* p=actors.lasers->sentinel.next;p;p=p->next)laser_presentation[p]={p->position,p->angle,p->length,p->width,p->id,p->state,p->original_virtual_table};Lasers env(*this);return actors.lasers->tick(actors.session->session_flags,engine.speed,env);}
 i32 World::draw_lasers(){Lasers env(*this);return actors.lasers->render(actors.session->session_flags,env);}
 i32 World::create_laser(i32 type,const void* p){Lasers env(*this);return actors.lasers->create(type,p,env);}
 i32 World::cancel_lasers(i32 convert){Lasers env(*this);return actors.lasers->cancel_all(convert,env);}

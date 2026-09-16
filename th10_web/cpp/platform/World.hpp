@@ -7,6 +7,7 @@
 #include "../game/LaserManager.hpp"
 #include "../game/EclProgram.hpp"
 #include "../../../portable/input/MotionTrack.hpp"
+#include <map>
 namespace th10::browser {
 // The gameplay owner persists across sessions, including transitions that keep
 // the player/replay/projectile pools or hand a completed replay to the menus.
@@ -20,6 +21,11 @@ struct World final:HudActions,CallbackReceiver {
     Preview* previews=nullptr;
     i32 new_game=0,loader_stop=0,loader_running=0,resource_drawing=-1,resource_updating=-1,pending_upload=0;
     float measured_fps=60;bool loading=false;bool always_hitbox=false;i32 error=0;
+    struct PlayerPresentation {Vec3 position{};i32 state=0;bool valid=false;} player_presentation;
+    struct BulletPresentation {Vec3 position{};float angle=0;i32 id=0;u16 state=0;bool active=false;} bullet_presentation[2000]{};
+    struct ItemPresentation {Vec3 position{};i32 age=0,state=0,kind=0;bool active=false;} item_regular_presentation[150]{},item_faith_presentation[2048]{};
+    struct LaserPresentation {Vec3 position{};float angle=0,length=0,width=0;u32 id=0;i32 state=0;u32 kind=0;};
+    std::map<const EnemyLaser*,LaserPresentation> laser_presentation;
     GameSessionResources::Progress loading_progress;
     World(GameState&,AnimationEngine&,Common&,Fonts&,Input&,Audio&,Scores&,ScreenEffects&);
     ~World();

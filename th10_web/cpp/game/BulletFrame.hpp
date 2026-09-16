@@ -15,6 +15,7 @@ struct BulletFrameEnvironment : BulletEffectEnvironment {
     virtual void play_sound(i32 sound,float x)=0;
     virtual void play_turn_sound(i32 sound)=0;
     virtual void submit(AnmVm& animation)=0;
+    virtual bool presentation(const EnemyBullet& bullet,Vec3& position,float& angle)=0;
 };
 struct EnemyBulletManager {
     u32 manager_fields[2];

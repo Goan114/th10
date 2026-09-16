@@ -23,6 +23,7 @@ struct LaserBehaviorEnvironment {
     virtual void cancel_effect(i32 script,const Vec3& position)=0;
     virtual void spawn_faith(const Vec3& position)=0;
     virtual void submit(AnmVm& animation)=0;
+    virtual bool presentation(const EnemyLaser& laser,Vec3& position,float& angle,float& length,float& width)=0;
 };
 // Touching a playfield edge is outside; unordered comparisons remain inside.
 bool laser_outside_playfield(const Vec3& point,float half_width,float half_height) noexcept;

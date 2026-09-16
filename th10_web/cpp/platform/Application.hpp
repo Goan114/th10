@@ -79,13 +79,14 @@ struct Application final:CallbackReceiver {
     ApplicationLoop clock{};ScreenshotState screenshot{};
     u32 screenshot_handle=0xffffffff,graphics_state=255,loading_ids[3]{},timing_counters[2]{};
     double timing_samples[4]{},frame_duration=0,clock_origin=0;
+    double presentation_origin=0;u32 presentation_frames=0;float presentation_fps=0;
     i32 reset_frames=0,loading_pause=0,disable_vsync=0,error=0,notice_code=-1,screenshot_error=0;
     bool stopped=false,writer_pending=false,initialized=false;
     AppScreens screens;AppFrames frames;AppLoop loop;AppStatistics rates;AppPresentation presentation;AppScreenshot screenshots;AppConfiguration config;
     Application(FileSystem&,Input&,GameState&,AnimationEngine&,Fonts&,Audio&,ScreenEffects&);
-    ~Application();bool initialize();i32 step(bool scheduled_tick=false);void save();void shutdown();
+    ~Application();bool initialize();i32 step(bool scheduled_tick=false);bool presentation_draw(float alpha,bool interpolate,bool world_interpolate=true);void presentation_frame();void save();void shutdown();
     void advance_loading();void sync_views();bool ensure_world();void configure_camera(Camera&,bool);
-    Extended time();void bind_callbacks(Callbacks&) override;
+    Extended time();void bind_callbacks(Callbacks&) override;i32 draw_statistics();
 #ifndef TH_NATIVE_PLATFORM
     bool invoke(CallbackToken,void*,i32&) override;
 #endif

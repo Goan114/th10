@@ -1,4 +1,5 @@
 #include "../game/CallbackNames.hpp"
+#include "../game/HighRefresh.hpp"
 #include "AnimationEngine.hpp"
 #include <cstdlib>
 namespace th10::browser {
@@ -51,7 +52,15 @@ resolved_callbacks.clear();for(auto*& slot:receivers)if(slot==&receiver)slot=nul
 }
 void AnimationEngine::callback(u32 token,AnmVm& vm){callback_environment.invoke(token,&vm);}
 i32 AnimationEngine::update(AnmVm& vm){return vm.update(*this);}
-void AnimationEngine::draw(AnmVm& vm){auto env=renderer();AnmRenderer{manager,env}.draw(vm);}
+void AnimationEngine::draw(AnmVm& vm){
+    auto env=renderer();if(!high_refresh::render_only||!high_refresh::active){AnmRenderer{manager,env}.draw(vm);return;}
+    auto found=presentation_previous.find(&vm);if(found==presentation_previous.end()){AnmRenderer{manager,env}.draw(vm);return;}const auto& before=found->second;
+    if(before.id!=vm.id||before.script_index!=vm.script_index||before.file!=vm.animation_file){AnmRenderer{manager,env}.draw(vm);return;}
+    auto copy=vm;const auto near=[](const Vec3& a,const Vec3& b){const float dx=a.x-b.x,dy=a.y-b.y,dz=a.z-b.z;return dx*dx+dy*dy+dz*dz<16384.0f;};
+    const auto mix=[](const Vec3& a,const Vec3& b){return Vec3{high_refresh::lerp(a.x,b.x),high_refresh::lerp(a.y,b.y),high_refresh::lerp(a.z,b.z)};};
+    if(near(before.position,vm.position))copy.position=mix(before.position,vm.position);if(near(before.script_position,vm.script_position))copy.script_position=mix(before.script_position,vm.script_position);if(near(before.child_position,vm.child_position))copy.child_position=mix(before.child_position,vm.child_position);
+    AnmRenderer{manager,env}.draw(copy);
+}
 void AnimationEngine::bind_sprite(AnmVm& vm,i32 index){vm.animation_file->bind_sprite(vm,index);}
 void AnimationEngine::change_draw_mode(AnmVm& vm){AnmDistortion::initialize(vm,*this);}
 void* AnimationEngine::allocate_geometry(u32 bytes){return std::malloc(bytes);}
@@ -74,4 +83,8 @@ i32 AnimationEngine::update_all(){return chain_value.run(false,callback_environm
 i32 AnimationEngine::draw_all(){return chain_value.run(true,callback_environment);}
 i32 AnimationEngine::draw_layer(u32 layer){auto env=renderer();GraphicsCamera camera(env);return AnmLayers{world,ui,active,screen_space,fog_enabled,camera,*this}.draw(manager,layer);}
 void AnimationEngine::configure_camera(bool flat){auto env=renderer();GraphicsCamera camera(env);if(flat)active->configure_flat(camera);else active->configure_world(camera);camera.set_viewport(active->viewport);}
+void AnimationEngine::snapshot_presentation(){
+    presentation_previous.clear();
+    for(auto* node: {manager.registry.world_head,manager.registry.ui_head})while(node){const auto* vm=node->value;node=node->next;if(vm)presentation_previous[vm]={vm->id,vm->script_index,vm->animation_file,vm->position,vm->script_position,vm->child_position};}
+}
 }
