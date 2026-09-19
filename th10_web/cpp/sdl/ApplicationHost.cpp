@@ -23,7 +23,7 @@ EM_BOOL frame(double timestamp,void* epoch){
     const double now=timestamp/1000.,delta=last<0?0:std::max(0.,now-last);last=now;callback_begin=emscripten_get_now();
     // Browser responsibilities end at resource readiness and input snapshots.
     // The C++ ApplicationLoop owns deadlines, logic, draw and the original
-    // original 60Hz cadence, independent of display callback frequency.
+    // 60Hz cadence, independent of display callback frequency.
     const int ready=browser_prepare_frame();if(!running)return EM_FALSE;
     if(ready<=0||suspended){sdl_audio_pause(1);cadence.reset();presentation.reset();presentation_primed=false;return EM_TRUE;}
     sdl_audio_pause(0);elapsed+=delta;audio_remainder+=delta*1000;
@@ -42,9 +42,9 @@ EM_BOOL frame(double timestamp,void* epoch){
     // performance counters. Use the display's timestamp for cadence, avoiding
     // a late/early callback's CPU work moving the next deadline across a VSync.
     const bool presentation_ready=interpolation_ready(),fast=touhou::sdl::PresentationCadence::fast_sample(delta);if(presentation_ready)presentation.advance(delta);else presentation.reset();if(!presentation.high_refresh||!fast)presentation_primed=false;
-    const auto ticks=cadence.advance(delta);int result=0;sdl_defer(1);
-    for(unsigned i=0;i<ticks&&!result;++i){sdl_native_input(application);result=application->step(true);}
-    const bool high=presentation.high_refresh&&interpolation_ready();if(high&&fast&&!presentation_primed&&ticks)presentation_primed=true;const bool interpolate=high&&fast&&presentation_primed;
+    const bool tick_due=cadence.advance(delta)!=0;int result=0;sdl_defer(1);
+    if(tick_due){sdl_native_input(application);result=application->step(true);}
+    const bool high=presentation.high_refresh&&interpolation_ready();if(high&&fast&&!presentation_primed&&tick_due)presentation_primed=true;const bool interpolate=high&&fast&&presentation_primed;
     sdl_defer(0);bool presented=false;
     if(!result&&high){const bool frozen=application->world&&application->world->actors.session&&(application->world->actors.session->session_flags&0x74);const float alpha=interpolate?float(cadence.interpolation_alpha()):1.0f;presented=application->presentation_draw(alpha,interpolate,!frozen);}else presented=sdl_commit()!=0;
     if(presented&&application)application->presentation_frame();

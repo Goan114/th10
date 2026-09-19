@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const read=path=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8').replaceAll('\r','');
 const host=read('th10_web/cpp/sdl/ApplicationHost.cpp');
 const app=read('th10_web/cpp/platform/Application.cpp');
+const appFrames=read('th10_web/cpp/platform/ApplicationFrames.cpp');
 const anim=read('th10_web/cpp/platform/AnimationEngine.cpp');
 const worldPlayer=read('th10_web/cpp/platform/WorldPlayer.cpp');
 const bullets=read('th10_web/cpp/game/BulletFrame.cpp');
@@ -20,9 +21,11 @@ const guiDraw=read('th10_web/cpp/game/GuiDraw.cpp');
 const hud=read('th10_web/cpp/platform/Hud.cpp');
 
 // rAF may schedule extra presentation frames, but authoritative simulation is
-// still Application::step(true) under the fixed 60 Hz cadence.
-assert.match(host,/const auto ticks=cadence\.advance\(delta\)/);
-assert.match(host,/for\(unsigned i=0;i<ticks&&!result;\+\+i\).*application->step\(true\)/s);
+// at most one Application::step(true) per callback. Late callbacks skip expired
+// original deadlines instead of replaying multiple catch-up ticks.
+assert.match(host,/const bool tick_due=cadence\.advance\(delta\)!=0/);
+assert.match(host,/if\(tick_due\)\{sdl_native_input\(application\);result=application->step\(true\);\}/);
+assert.doesNotMatch(host,/for\(unsigned i=0;i<ticks/);
 assert.match(host,/sdl_defer\(1\)/);
 assert.match(host,/application->presentation_draw\(alpha,interpolate,!frozen\)/);
 assert.match(host,/session_flags&0x74/);
@@ -39,6 +42,11 @@ assert.match(presentationDraw,/engine\.draw_all\(\)/);
 assert.doesNotMatch(presentationDraw,/update_all\(|clock\.step|\.submit\(\)/);
 assert.match(app,/if\(high_refresh::render_only\).*presentation_fps/s);
 assert.match(app,/statistics->draw\(rates\)/);
+
+// The original HUD assumed a two-digit FPS value at x=590. High refresh can
+// make the label wider, so keep its right edge fixed inside the 640px viewport.
+assert.match(appFrames,/std::strlen\(output\)/);
+assert.match(appFrames,/if\(length>7\)adjusted\.x-=float\(\(length-7\)\*7\)/);
 
 // Generic ANM presentation is field-aware: position is lifecycle-gated, while
 // scale/rotation/color/UV may only smooth fields that the authored ANM is

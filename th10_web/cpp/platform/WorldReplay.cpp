@@ -28,7 +28,17 @@ void World::prepare_replay(){Gameplay env(*this);state.replay->prepare_stage(env
 void World::activate_replay(){Gameplay env(*this);state.replay->activate_stage(env);motion.begin(state.game.stage,false,state.replay->mode!=0,state.replay->mode==0);}
 i32 World::update_replay(){Gameplay env(*this);return state.replay->update_input(env);}
 i32 World::replay_frame_action(){Gameplay env(*this);return state.replay->frame_action(env,true);}
-i32 World::draw_replay(){Gameplay env(*this);return state.replay->draw(env,true);}
+i32 World::draw_replay(){
+    Gameplay env(*this);const i32 result=state.replay->draw(env,true);
+    if(motion.playing&&common.value){
+        touhou::input::MotionTrack::TouchPoint points[10];const int count=motion.replay_points(points,10);
+        auto& text=*common.value;const u32 color=text.color;const Vec2 scale=text.scale;const i32 shadow=text.shadow;
+        text.color=0xffffffff;text.scale={.7f,.7f};text.shadow=0;
+        for(int i=0;i<count;++i)text.queue("+",{points[i].x*640.f-5.f,points[i].y*480.f-7.f,0},false);
+        text.color=color;text.scale=scale;text.shadow=shadow;
+    }
+    return result;
+}
 void World::finish_replay(i32 clear){Gameplay env(*this);state.replay->finish_recording(clear,env);}
 Replay* World::preview(const char* name){auto* entry=new(std::malloc(sizeof(Preview))) Preview(scores.files,state.game.flags,previews);if(entry->document.load(name)){entry->~Preview();std::free(entry);return nullptr;}entry->document.value.mode=2;previews=entry;return &entry->document.value;}
 void World::release_replay(Replay* replay){if(!replay)return;for(auto** next=&previews;*next;next=&(*next)->next){auto* entry=*next;if(&entry->document.value==replay){*next=entry->next;entry->~Preview();std::free(entry);return;}}if(replay==state.replay){destroy_replay(replay);return;}__builtin_trap();}

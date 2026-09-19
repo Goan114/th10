@@ -42,9 +42,11 @@ struct Key {const char* code;const char* sdl;u32 scan,vk;bool hosted=false;SDL_S
 touhou::input::TouchController gestures;
 touhou::input::TouchState touch_state(){touhou::input::TouchState s;if(!session||!session->app)return s;u32 raw[8];application_touch_state(session->app,raw);float values[5];std::memcpy(values,raw+3,20);
     s.context=raw[0];s.instance=raw[1];s.ready=raw[2];s.x=values[0];s.y=values[1];s.fast=values[2];s.slow=values[3];s.min_x=-184;s.max_x=184;s.min_y=32;s.max_y=432;return s;}
-void cancel(){gestures.cancel_transient();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
+World* touch_world(){return session&&session->app?session->app->world:nullptr;}
+void cancel(){if(auto* world=touch_world()){world->motion.touch_cancel(world->state.game.stage);world->motion.target(0,0,0);}gestures.cancel_transient();}
 void key(InputSnapshot& s,u32 scan,u32 vk){s.scan_keys[scan]=128;s.virtual_keys[vk]=128;if(vk>=160&&vk<=165)s.virtual_keys[16+(vk-160)/2]=128;}
-void touch(int type,int id,float x,float y){gestures.pointer(type,id,x,y,SDL_GetTicks(),touch_state(),session&&session->input&&session->input->snapshot.virtual_keys[16]);}
+void sync_touch_context(const touhou::input::TouchState& state){const int previous=gestures.current_context();if(previous!=state.context&&(previous==1||previous==2))if(auto* world=touch_world())world->motion.touch_cancel(world->state.game.stage);}
+void touch(int type,int id,float x,float y){const auto state=touch_state();sync_touch_context(state);if((state.context==1||state.context==2))if(auto* world=touch_world())world->motion.touch_event(world->state.game.stage,type,id,x,y);gestures.pointer(type,id,x,y,SDL_GetTicks(),state,session&&session->input&&session->input->snapshot.virtual_keys[16]);}
 
 }
 extern "C" {
@@ -60,7 +62,7 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
     const bool* physical=SDL_GetKeyboardState(nullptr);
     for(const auto& k:keyboard_map)if(k.hosted||(k.native!=SDL_SCANCODE_UNKNOWN&&physical[k.native]))key(snapshot,k.scan,k.vk);
     poll_controllers(snapshot);
-    const auto sample=gestures.sample(touch_state(),SDL_GetTicks(),snapshot.virtual_keys[16],snapshot.virtual_keys[37]||snapshot.virtual_keys[38]||snapshot.virtual_keys[39]||snapshot.virtual_keys[40]);
+    const auto state=touch_state();sync_touch_context(state);const auto sample=gestures.sample(state,SDL_GetTicks(),snapshot.virtual_keys[16],snapshot.virtual_keys[37]||snapshot.virtual_keys[38]||snapshot.virtual_keys[39]||snapshot.virtual_keys[40]);
     for(const auto& k:keyboard_map)if(sample.keys[k.vk]||(k.vk>=160&&k.vk<=165&&sample.keys[16+(k.vk-160)/2]))key(snapshot,k.scan,k.vk);
     if(app->world)app->world->motion.target(sample.motion,sample.x,sample.y);
 }
@@ -77,7 +79,7 @@ EXPORT("sdl_game_open") Application* sdl_game_open(u32 chinese,u32 seed){
 }
 EXPORT("sdl_game_close") void sdl_game_close(){cancel();close_controllers();session.reset();}
 EXPORT("sdl_key") void sdl_key(const char* code,u32 down){for(auto& k:keyboard_map)if(!std::strcmp(code,k.code)){k.hosted=down!=0;return;}}
-EXPORT("sdl_keys_clear") void sdl_keys_clear(){for(auto& k:keyboard_map)k.hosted=false;gestures.reset();if(session&&session->app&&session->app->world)session->app->world->motion.target(0,0,0);}
+EXPORT("sdl_keys_clear") void sdl_keys_clear(){for(auto& k:keyboard_map)k.hosted=false;cancel();gestures.reset();}
 EXPORT("sdl_touch") void sdl_touch(u32 type,i32 id,float x,float y){touch(type,id,x,y);}
 EXPORT("sdl_touch_cancel") void sdl_touch_cancel(){cancel();}
 EXPORT("sdl_touch_options") void sdl_touch_options(u32 on,u32 free,float speed){gestures.enabled=on;gestures.unlimited=free;gestures.sensitivity=std::clamp(speed,1.f,3.f);if(!on)cancel();}
