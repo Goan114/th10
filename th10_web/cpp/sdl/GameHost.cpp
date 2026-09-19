@@ -1,5 +1,6 @@
 #include "../platform/Application.hpp"
 #include <SDL3/SDL.h>
+#include <emscripten.h>
 #include "../../../portable/input/TouchController.hpp"
 #include <algorithm>
 #include <cstdlib>
@@ -9,6 +10,19 @@
 #include <cmath>
 #include <vector>
 using namespace th10;using namespace th10::browser;
+EM_JS(int, th10_keyboard_gamepad_dpad, (), {
+    if (!navigator.getGamepads) return 0;
+    let bits = 0;
+    for (const pad of navigator.getGamepads()) {
+        if (!pad || !pad.buttons || pad.buttons.length < 16) continue;
+        if (!/keyboard|\bkb\b/i.test(String(pad.id || 0))) continue;
+        if (pad.buttons[12]?.pressed) bits |= 1;
+        if (pad.buttons[13]?.pressed) bits |= 2;
+        if (pad.buttons[14]?.pressed) bits |= 4;
+        if (pad.buttons[15]?.pressed) bits |= 8;
+    }
+    return bits;
+});
 extern "C" {
 FileSystem* files_create();void files_destroy(FileSystem*);u32 files_attach(FileSystem*,const char*);
 Input* input_create();void input_destroy(Input*);GameState* game_state_create(Input*,u32);void game_state_destroy(GameState*);
@@ -28,13 +42,16 @@ struct Session {
     ~Session(){sdl_loop_stop();if(app)application_destroy(app);if(effects)effects_destroy(effects);if(audio)audio_destroy(audio);sdl_audio_shutdown();if(fonts)fonts_destroy(fonts);sdl_fonts_shutdown();if(animation)animation_engine_destroy(animation);if(device)graphics_destroy(device);if(state)game_state_destroy(state);if(input)input_destroy(input);if(files)files_destroy(files);sdl_shutdown();}
 };
 std::unique_ptr<Session> session;
-SDL_Joystick* controllers[2]{};
-void close_controllers(){for(auto*& p:controllers)if(p){SDL_CloseJoystick(p);p=nullptr;}}
-void add_controller(SDL_JoystickID id){for(const auto* p:controllers)if(p&&SDL_GetJoystickID(const_cast<SDL_Joystick*>(p))==id)return;for(auto*& p:controllers)if(!p){p=SDL_OpenJoystick(id);break;}}
-void poll_controllers(InputSnapshot& input){for(u32 i=0;i<2;i++){auto* p=controllers[i];if(!p||!SDL_JoystickConnected(p))continue;input.connected[i]=1;auto& d=input.direct[i];auto& l=input.legacy[i];l.size=52;l.flags=255;
-    for(int n=0;n<6;n++){const int value=n<SDL_GetNumJoystickAxes(p)?SDL_GetJoystickAxis(p,n):0;const double unit=value<0?value/32768.:value/32767.;d.axes[n]=i32(std::floor(unit*1000+.5));(&l.x)[n]=u32(std::floor((unit+1)*32767.5+.5));}
-    for(int n=0;n<std::min(128,SDL_GetNumJoystickButtons(p));n++){const bool down=SDL_GetJoystickButton(p,n);d.buttons[n]=down?128:0;if(down&&n<32)l.buttons|=1u<<n;}
-    const int hat=SDL_GetNumJoystickHats(p)?SDL_GetJoystickHat(p,0):0,x=((hat&SDL_HAT_RIGHT)||d.buttons[15]?1:0)-((hat&SDL_HAT_LEFT)||d.buttons[14]?1:0),y=((hat&SDL_HAT_DOWN)||d.buttons[13]?1:0)-((hat&SDL_HAT_UP)||d.buttons[12]?1:0);
+SDL_Gamepad* controllers[2]{};
+constexpr SDL_GamepadButton gamepad_slots[]={SDL_GAMEPAD_BUTTON_SOUTH,SDL_GAMEPAD_BUTTON_EAST,SDL_GAMEPAD_BUTTON_WEST,SDL_GAMEPAD_BUTTON_NORTH,SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER,SDL_GAMEPAD_BUTTON_BACK,SDL_GAMEPAD_BUTTON_START,SDL_GAMEPAD_BUTTON_LEFT_STICK,SDL_GAMEPAD_BUTTON_RIGHT_STICK,SDL_GAMEPAD_BUTTON_GUIDE};
+constexpr SDL_GamepadAxis gamepad_axes[]={SDL_GAMEPAD_AXIS_LEFTX,SDL_GAMEPAD_AXIS_LEFTY,SDL_GAMEPAD_AXIS_RIGHTX,SDL_GAMEPAD_AXIS_RIGHTY,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER};
+void close_controllers(){for(auto*& p:controllers)if(p){SDL_CloseGamepad(p);p=nullptr;}}
+void add_controller(SDL_JoystickID id){for(const auto* p:controllers)if(p&&SDL_GetGamepadID(const_cast<SDL_Gamepad*>(p))==id)return;for(auto*& p:controllers)if(!p){p=SDL_OpenGamepad(id);break;}}
+void poll_controllers(InputSnapshot& input){for(u32 i=0;i<2;i++){auto* p=controllers[i];if(!p||!SDL_GamepadConnected(p))continue;input.connected[i]=1;auto& d=input.direct[i];auto& l=input.legacy[i];l.size=52;l.flags=255;
+    for(int n=0;n<6;n++){const int value=SDL_GetGamepadAxis(p,gamepad_axes[n]);const double unit=value<0?value/32768.:value/32767.;d.axes[n]=i32(std::floor(unit*1000+.5));(&l.x)[n]=u32(std::floor((unit+1)*32767.5+.5));}
+    for(u32 n=0;n<sizeof(gamepad_slots)/sizeof(*gamepad_slots);n++){const bool down=SDL_GetGamepadButton(p,gamepad_slots[n]);d.buttons[n]=down?128:0;if(down&&n<32)l.buttons|=1u<<n;}
+    const int x=int(SDL_GetGamepadButton(p,SDL_GAMEPAD_BUTTON_DPAD_RIGHT))-int(SDL_GetGamepadButton(p,SDL_GAMEPAD_BUTTON_DPAD_LEFT)),y=int(SDL_GetGamepadButton(p,SDL_GAMEPAD_BUTTON_DPAD_DOWN))-int(SDL_GetGamepadButton(p,SDL_GAMEPAD_BUTTON_DPAD_UP));
+    if(x){d.axes[0]=x*1000;l.x=x>0?65535:0;}if(y){d.axes[1]=y*1000;l.y=y>0?65535:0;}
     l.pov=(x||y)?u32((int(std::round(std::atan2(double(x),double(-y))*180/3.141592653589793))+360)%360)*100:~0u;d.pov[0]=l.pov;for(int n=1;n<4;n++)d.pov[n]=~0u;if(l.buttons)l.button_number=__builtin_ctz(l.buttons)+1;
 }}
 struct Key {const char* code;const char* sdl;u32 scan,vk;bool hosted=false;SDL_Scancode native=SDL_SCANCODE_UNKNOWN;};
@@ -54,13 +71,14 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
     if(!session||session->app!=app)return;
     SDL_Event event;while(SDL_PollEvent(&event)){
         if(event.type==SDL_EVENT_FINGER_CANCELED){cancel();continue;}
-        if(event.type==SDL_EVENT_JOYSTICK_ADDED)add_controller(event.jdevice.which);
-        if(event.type==SDL_EVENT_JOYSTICK_REMOVED)for(auto*& p:controllers)if(p&&SDL_GetJoystickID(p)==event.jdevice.which){SDL_CloseJoystick(p);p=nullptr;}
+        if(event.type==SDL_EVENT_GAMEPAD_ADDED)add_controller(event.gdevice.which);
+        if(event.type==SDL_EVENT_GAMEPAD_REMOVED)for(auto*& p:controllers)if(p&&SDL_GetGamepadID(p)==event.gdevice.which){SDL_CloseGamepad(p);p=nullptr;}
         if(event.type==SDL_EVENT_FINGER_DOWN||event.type==SDL_EVENT_FINGER_MOTION||event.type==SDL_EVENT_FINGER_UP)touch(event.type==SDL_EVENT_FINGER_DOWN?0:event.type==SDL_EVENT_FINGER_MOTION?1:2,int(event.tfinger.fingerID),event.tfinger.x,event.tfinger.y);
     }
     auto& snapshot=app->input.snapshot;std::memset(&snapshot,0,sizeof(snapshot));snapshot.focused=1;
     const bool* physical=SDL_GetKeyboardState(nullptr);
     for(const auto& k:keyboard_map)if(k.hosted||(k.native!=SDL_SCANCODE_UNKNOWN&&physical[k.native]))key(snapshot,k.scan,k.vk);
+    const int keyboardDpad=th10_keyboard_gamepad_dpad();if(keyboardDpad&1)key(snapshot,0xc8,38);if(keyboardDpad&2)key(snapshot,0xd0,40);if(keyboardDpad&4)key(snapshot,0xcb,37);if(keyboardDpad&8)key(snapshot,0xcd,39);
     poll_controllers(snapshot);
     const auto state=touch_state();sync_touch_context(state);const auto sample=gestures.sample(state,SDL_GetTicks(),snapshot.virtual_keys[16],snapshot.virtual_keys[37]||snapshot.virtual_keys[38]||snapshot.virtual_keys[39]||snapshot.virtual_keys[40]);
     for(const auto& k:keyboard_map)if(sample.keys[k.vk]||(k.vk>=160&&k.vk<=165&&sample.keys[16+(k.vk-160)/2]))key(snapshot,k.scan,k.vk);
@@ -70,7 +88,7 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
 EXPORT("sdl_game_open") Application* sdl_game_open(u32 chinese,u32 seed){
     gestures.begin_session();
     for(auto& k:keyboard_map)k.native=SDL_GetScancodeFromName(k.sdl);
-    close_controllers();SDL_InitSubSystem(SDL_INIT_JOYSTICK);int controller_count=0;auto* ids=SDL_GetJoysticks(&controller_count);for(int i=0;i<controller_count;i++)add_controller(ids[i]);SDL_free(ids);
+    close_controllers();SDL_InitSubSystem(SDL_INIT_GAMEPAD);int controller_count=0;auto* ids=SDL_GetGamepads(&controller_count);for(int i=0;i<controller_count;i++)add_controller(ids[i]);SDL_free(ids);
     session=std::make_unique<Session>();auto& s=*session;sdl_files_root(chinese);u32 rng[]{seed,0};std::memcpy(&s.random,rng,8);std::memcpy(&s.visual,rng,8);
     s.files=files_create();if(!s.files||!files_attach(s.files,chinese?"th10c.dat":"th10.dat"))return nullptr;
     const u32 parameters[]{640,480,22,1,0,0,1,0,1,1,80,0,0,0};s.input=input_create();s.state=game_state_create(s.input,chinese);s.device=graphics_create(reinterpret_cast<const GraphicsPresentation*>(parameters),0x40);if(!s.device)return nullptr;
