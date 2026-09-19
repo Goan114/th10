@@ -24,9 +24,11 @@ constexpr const char* titles[]={
     "\xb6\xab\xb7\xbd\xb7\xe7\xc9\xf1\xc2\xbc\xd3\xce\xcf\xb7\xc2\xbc\xcf\xf1\xce\xc4\xbc\xfe\xd0\xc5\xcf\xa2\r\n"
 };
 constexpr const char* comments[]={"\x83\x52\x83\x81\x83\x93\x83\x67\x82\xf0\x8f\x91\x82\xaf\x82\xdc\x82\xb7","\xca\xe4\xc8\xeb\xd7\xa2\xca\xcd"};
+constexpr bool no_cheat_movement=false;
 }
-ReplayWriter::ReplayWriter(FileSystem& f,ReplayCalendar& clock,GameEconomy& economy,const double& active,const double& total,bool chinese):files(f),calendar(clock){
-    game=&economy;active_time=&active;total_time=&total;search={nodes,dictionary};
+ReplayWriter::ReplayWriter(FileSystem& f,ReplayCalendar& clock,GameEconomy& economy,const double& active,const double& total,bool chinese):ReplayWriter(f,clock,economy,active,total,no_cheat_movement,chinese){}
+ReplayWriter::ReplayWriter(FileSystem& f,ReplayCalendar& clock,GameEconomy& economy,const double& active,const double& total,const bool& cheat,bool chinese):files(f),calendar(clock){
+    game=&economy;active_time=&active;total_time=&total;cheat_movement_used=&cheat;search={nodes,dictionary};
     title=titles[chinese];version="1.00a";comment=comments[chinese];stage_range="Stage %d \x81\x60 %d\r\n";
     ReplaySaveEnvironment::characters=browser::characters;ReplaySaveEnvironment::difficulties=browser::difficulties;
 }

@@ -5,7 +5,7 @@
 #include <new>
 #include <cstdlib>
 namespace th10::browser {
-World::World(GameState& s,AnimationEngine& e,Common& c,Fonts& f,Input& i,Audio& a,Scores& records,ScreenEffects& fx):state(s),engine(e),common(c),fonts(f),input(i),audio(a),scores(records),effects(fx),backgrounds(s,e,fx,records.files),chain(&e.chain_value),replay_files(records.files,s.game.flags),replay_writer(records.files,default_calendar(),s.game,s.active_time,s.total_time,s.chinese),calendar(default_calendar()){engine.register_receiver(*this);
+World::World(GameState& s,AnimationEngine& e,Common& c,Fonts& f,Input& i,Audio& a,Scores& records,ScreenEffects& fx):state(s),engine(e),common(c),fonts(f),input(i),audio(a),scores(records),effects(fx),backgrounds(s,e,fx,records.files),chain(&e.chain_value),replay_files(records.files,s.game.flags),replay_writer(records.files,default_calendar(),s.game,s.active_time,s.total_time,s.motion.cheat_movement_used,s.chinese),calendar(default_calendar()){engine.register_receiver(*this);
     engine.callback_environment.bind(callback_id::SessionUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.update_session();});
     engine.callback_environment.bind(callback_id::SessionDraw,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.actors.session->draw(w.engine.manager);});
     engine.callback_environment.bind(callback_id::PlayerUpdate,this,[](void* p,void*,i32){auto& w=*static_cast<World*>(p);return w.update_player();});

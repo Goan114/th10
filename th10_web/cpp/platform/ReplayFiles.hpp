@@ -26,6 +26,7 @@ struct ReplayWriter final : ReplaySaveEnvironment {
     const std::vector<u8>* motion_trailer=nullptr;
     bool write_failed=false;
     ReplayWriter(FileSystem&,ReplayCalendar&,GameEconomy&,const double& active,const double& total,bool chinese);
+    ReplayWriter(FileSystem&,ReplayCalendar&,GameEconomy&,const double& active,const double& total,const bool& cheat_movement_used,bool chinese);
     ~ReplayWriter();
     i32 save(Replay& replay,const char* file,const char* name,const std::vector<u8>& trailer={});
     u8* allocate_bytes(u32 bytes) override;

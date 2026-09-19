@@ -17,6 +17,7 @@ struct ReplaySaveEnvironment : CodecMemory {
     GameEconomy* game;
     const double* active_time;
     const double* total_time;
+    const bool* cheat_movement_used;
     LzssSearch search;
     // Title, version, character and difficulty strings use the game's encoding.
     const char* title;

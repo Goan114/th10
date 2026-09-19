@@ -61,6 +61,7 @@ struct ResultsEnvironment {
     AnmFile** background_file;
     const char* alphabet;
     const double *active_time,*total_time;
+    const bool* cheat_movement_used;
     bool repeat(u16 bits) const noexcept {return ((*pressed|*repeated)&bits)!=0;}
     virtual void sound(i32 id)=0;
     virtual void music_command(i32 command,const char* label)=0;

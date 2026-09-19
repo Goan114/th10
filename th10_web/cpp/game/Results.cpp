@@ -12,7 +12,7 @@ i32 insert_high_score(CharacterRecord& record,ResultsEnvironment& env){
     for(i32 i=9;i>index;--i)record.high_scores[game.difficulty][i]=record.high_scores[game.difficulty][i-1];
     record.high_scores[game.difficulty][index].score=game.score;record.high_scores[game.difficulty][index].score_units=game.score_units;record.high_scores[game.difficulty][index].stage=game.stage;
     env.timestamp(record.high_scores[game.difficulty][index].timestamp);std::memcpy(record.high_scores[game.difficulty][index].name,"        ",9);
-    record.high_scores[game.difficulty][index].slow_rate=(number(100)-Extended::from_double(*env.active_time)/Extended::from_double(*env.total_time)*number(100)).to_float();return index;
+    record.high_scores[game.difficulty][index].slow_rate=env.cheat_movement_used&&*env.cheat_movement_used?100.f:(number(100)-Extended::from_double(*env.active_time)/Extended::from_double(*env.total_time)*number(100)).to_float();return index;
 }
 // 0x422ab0 / 0x422c30. Paused menus always tick at unit rate and restore the
 // prior rate only on resumption or dismissal.

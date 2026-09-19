@@ -28,7 +28,7 @@ struct Movement final:PlayerMovementEnvironment {
         if(w.motion.playing){enabled=w.motion.playback(w.state.game.stage,dx,dy);}
         else{
             enabled=w.motion.active&&p.state==1&&(!w.actors.gui||!w.actors.gui->dialogue);
-            if(enabled){const float rate=w.engine.speed;dx=rate?(w.motion.target_x*100-p.fixed_position.x)/rate:0;dy=rate?(w.motion.target_y*100-p.fixed_position.y)/rate:0;if(!w.motion.unlimited)touhou::input::limit_vector(dx,dy,float(speed));dx=std::round(dx);dy=std::round(dy);}
+            if(enabled){const float rate=w.engine.speed;dx=rate?(w.motion.target_x*100-p.fixed_position.x)/rate:0;dy=rate?(w.motion.target_y*100-p.fixed_position.y)/rate:0;if(!w.motion.unlimited)touhou::input::limit_vector(dx,dy,float(speed));dx=std::round(dx);dy=std::round(dy);w.motion.mark_cheat_movement(dx,dy);}
             w.motion.record(w.state.game.stage,enabled,dx,dy);
         }
         if(enabled&&(!std::isfinite(dx)||!std::isfinite(dy)||std::abs(dx)>touhou::input::MotionTrack::velocity_limit||std::abs(dy)>touhou::input::MotionTrack::velocity_limit)){w.fail();return false;}
