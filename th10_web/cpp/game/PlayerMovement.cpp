@@ -26,7 +26,8 @@ i32 Player::move(PlayerMovementEnvironment& env){
             if(keys&4)option_follow_speed=0;else if(option_follow_speed<30)option_follow_speed=wrapping_add(option_follow_speed,1);
         }
     }
-    if(!focused){if(env.manager->registry.find(focus_animation))env.manager->registry.interrupt(focus_animation,1);focus_animation=0;}
+    const bool show_hitbox=focused||(env.always_hitbox&&*env.always_hitbox);
+    if(!show_hitbox){if(env.manager->registry.find(focus_animation))env.manager->registry.interrupt(focus_animation,1);focus_animation=0;}
     else if(!focus_animation)focus_animation=env.manager->create(*env.effect_file,0x160,9,AnimationPlacement::WorldBack,*env.animations,*env.allocation);
     const i32 straight=focused?slow_speed:fast_speed,diagonal=focused?slow_diagonal:fast_diagonal;
     i32 x=0,y=0;

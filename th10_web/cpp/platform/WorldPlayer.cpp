@@ -20,7 +20,7 @@ struct Lifecycle final:PlayerLifecycleEnvironment {
     void show_caution(const Vec3& p) override{w.record_hint("Caution!",p,true);}
 };
 struct Movement final:PlayerMovementEnvironment {
-    World& w;explicit Movement(World& world):w(world){economy=&w.state.game;manager=&w.engine.manager;effect_file=w.actors.bullets->animation_file;animations=&w.engine;allocation=&w.engine;default_rate=&w.engine.speed;input_keys=reinterpret_cast<const u32*>(&w.input.player_profiles[0].input.current);enemy_count=w.actors.enemies?&w.actors.enemies->count:nullptr;}
+    World& w;explicit Movement(World& world):w(world){economy=&w.state.game;manager=&w.engine.manager;effect_file=w.actors.bullets->animation_file;animations=&w.engine;allocation=&w.engine;default_rate=&w.engine.speed;always_hitbox=&w.always_hitbox;input_keys=reinterpret_cast<const u32*>(&w.input.player_profiles[0].input.current);enemy_count=w.actors.enemies?&w.actors.enemies->count:nullptr;}
     void update_option(PlayerOption& option) override{if(option.on_update==callback_id::PlayerOptionInitialize)w.actors.player->update_trailing_option(option);else if(option.on_update==callback_id::PlayerOptionUpdate)w.actors.player->update_anchored_option(option,manager->registry);else __builtin_trap();}
     bool movement(const Player& p,i32 speed,i32& x,i32& y)override{
         if(!w.state.replay||w.state.replay->active_stage<0)return false;
@@ -109,13 +109,7 @@ i32 World::update_player(){auto& p=*actors.player;player_presentation={p.positio
 i32 World::draw_player(){
     Draw env(*this);auto& player=*actors.player;Player copy;Player* draw=&player;
     if(high_refresh::render_only){copy=player;draw=&copy;engine.present(copy.animation,player.animation);if(high_refresh::active&&player_presentation.valid&&player_presentation.state==player.state){const float dx=player.position.x-player_presentation.position.x,dy=player.position.y-player_presentation.position.y;if(dx*dx+dy*dy<16384.0f)copy.position={high_refresh::lerp_world(player_presentation.position.x,player.position.x),high_refresh::lerp_world(player_presentation.position.y,player.position.y),high_refresh::lerp_world(player_presentation.position.z,player.position.z)};}}
-    const i32 result=draw->draw(env);
-    if(always_hitbox&&player.state==1){
-        const float x=draw->position.x+224,y=draw->position.y+16,hx=player.hitbox_half_size.x,hy=player.hitbox_half_size.y;
-        rectangle({x-hx-1,y-hy-1,x+hx+1,y+hy+1},0xff202020);
-        rectangle({x-hx,y-hy,x+hx,y+hy},0xffeeeeee);
-    }
-    return result;
+    return draw->draw(env);
 }
 void World::hit_player(){Lifecycle env(*this);actors.player->hit(env);}
 i32 World::player_damage(const Vec3& p,const Vec2& size){Damage env(*this);return actors.player->damage(p,size,env);}

@@ -6,6 +6,7 @@ struct PlayerMovementEnvironment {
     const u32* input_keys;
     const i32* enemy_count;
     const float* default_rate;
+    const bool* always_hitbox;
     GameEconomy* economy;
     AnmManager* manager;
     AnmFile* effect_file;
