@@ -1,5 +1,6 @@
 #include "../game/CallbackNames.hpp"
 #include "../game/HighRefresh.hpp"
+#include "../game/PresentationAudit.hpp"
 #include "Application.hpp"
 #include <new>
 #include <cstdlib>
@@ -73,7 +74,7 @@ bool Application::presentation_draw(float alpha,bool interpolate,bool world_inte
     const auto saved_reserved=manager->reserved_050,saved_submitted=manager->submitted_draws,saved_started=manager->started_scripts,saved_flushed=manager->flushed_batches;
     AnmVm saved_characters{},saved_small{};i32 saved_text_count=0,saved_early_count=0;u32 saved_text_color=0;Vec2 saved_text_scale{};i32 saved_text_camera=0,saved_text_shadow=0;
     if(common_view){saved_characters=common_view->characters;saved_small=common_view->small_characters;saved_text_count=common_view->text_count;saved_early_count=common_view->early_text_count;saved_text_color=common_view->color;saved_text_scale=common_view->scale;saved_text_camera=common_view->camera;saved_text_shadow=common_view->shadow;}
-    high_refresh::begin(alpha,interpolate,true,world_interpolate);
+    high_refresh::begin(alpha,interpolate,true,world_interpolate);presentation_audit::begin_sample(alpha);
     engine.flush();value.active_camera=&value.ui_camera;configure_camera(value.ui_camera,true);engine.device.viewport(value.active_camera->viewport);value.screen_space=1;
     bool presented=false;
     if(engine.device.begin_scene()>=0){
@@ -83,7 +84,7 @@ bool Application::presentation_draw(float alpha,bool interpolate,bool world_inte
     engine.world=saved_world;engine.ui=saved_ui;engine.active=saved_active;engine.screen_space=saved_screen_space;engine.fog_enabled=saved_fog;graphics_state=saved_graphics;
     manager->reserved_050=saved_reserved;manager->submitted_draws=saved_submitted;manager->started_scripts=saved_started;manager->flushed_batches=saved_flushed;
     if(common_view){common_view->characters=saved_characters;common_view->small_characters=saved_small;common_view->text_count=saved_text_count;common_view->early_text_count=saved_early_count;common_view->color=saved_text_color;common_view->scale=saved_text_scale;common_view->camera=saved_text_camera;common_view->shadow=saved_text_shadow;}
-    value.world_camera=saved_value_world;value.ui_camera=saved_value_ui;value.active_camera=saved_value_active;high_refresh::end();return presented;
+    value.world_camera=saved_value_world;value.ui_camera=saved_value_ui;value.active_camera=saved_value_active;presentation_audit::end_frame();high_refresh::end();return presented;
 }
 void Application::presentation_frame(){
     const double now=time().to_double();if(!presentation_origin){presentation_origin=now;presentation_frames=0;}++presentation_frames;const double elapsed=now-presentation_origin;if(elapsed<.5)return;
