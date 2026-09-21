@@ -8,6 +8,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
+#include "../../../portable/sdl/third_party/stb_image.h"
 #include "../game/Types.hpp"
 using th10::u32;using th10::i32;using th10::u8;
 extern "C" SDL_IOStream* th10_music_stream();
@@ -64,5 +67,14 @@ bool sdl_read_file(const char* path,std::vector<u8>& out){
     if(!bytes)return false;
     out.assign(static_cast<u8*>(bytes),static_cast<u8*>(bytes)+size);
     SDL_free(bytes);return true;
+}
+// Decodes a thcrap texture-override PNG into tightly packed RGBA8. The ANM
+// compositor re-encodes it to the surface's format, mirroring th08's port.
+bool sdl_decode_rgba(const u8* bytes,u32 size,u32& width,u32& height,std::vector<u8>& rgba){
+    if(!bytes||!size)return false;int w=0,h=0,channels=0;
+    auto* pixels=stbi_load_from_memory(bytes,int(size),&w,&h,&channels,4);
+    if(!pixels)return false;width=static_cast<u32>(w);height=static_cast<u32>(h);
+    rgba.assign(pixels,pixels+static_cast<std::size_t>(w)*static_cast<std::size_t>(h)*4);
+    stbi_image_free(pixels);return true;
 }
 }

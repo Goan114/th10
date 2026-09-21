@@ -2,6 +2,10 @@
 #include "../game/HighRefresh.hpp"
 #include "../game/PresentationAudit.hpp"
 #include "Application.hpp"
+#ifdef TH_ENABLE_THPRAC
+#include "../sdl/ThpracUi.hpp"
+#include "Renderer.hpp"
+#endif
 #include <new>
 #include <cstdlib>
 #include <cstdio>
@@ -79,7 +83,11 @@ bool Application::presentation_draw(float alpha,bool interpolate,bool world_inte
     bool presented=false;
     if(engine.device.begin_scene()>=0){
         auto& animations=*manager;animations.batch_quads=0;animations.vertex_write=animations.batch_start=animations.vertex_buffer;graphics_state=255;
-        u32 fog=saved_fog;ApplicationLoop::disable_fog(value,fog,loop);engine.draw_all();engine.flush();engine.device.texture(nullptr);engine.device.end_scene();presented=engine.device.present_frame()>=0;
+        u32 fog=saved_fog;ApplicationLoop::disable_fog(value,fog,loop);engine.draw_all();engine.flush();engine.device.texture(nullptr);engine.device.end_scene();
+#ifdef TH_ENABLE_THPRAC
+        if(auto* renderer=touhou::sdl::current())ThpracUi::render(*this,*renderer);
+#endif
+        presented=engine.device.present_frame()>=0;
     }
     engine.world=saved_world;engine.ui=saved_ui;engine.active=saved_active;engine.screen_space=saved_screen_space;engine.fog_enabled=saved_fog;graphics_state=saved_graphics;
     manager->reserved_050=saved_reserved;manager->submitted_draws=saved_submitted;manager->started_scripts=saved_started;manager->flushed_batches=saved_flushed;
