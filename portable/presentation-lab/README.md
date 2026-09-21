@@ -22,3 +22,11 @@ purity `unknown`.
 The common workbench and TH10 loopback server are wired, but require a fresh
 diagnostic build/package before launch.  `start-lab.ps1 -Build` performs that
 isolated build; it never opens a browser window.
+
+Normal source gate:
+
+```powershell
+node portable/check-high-refresh-contract.mjs
+node portable/check-presentation-purity.mjs
+node --test third_party/eagler-common/testkit/presentation-lab/controller-core.test.mjs third_party/eagler-common/testkit/presentation-lab/release-contract.test.mjs
+```
