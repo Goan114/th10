@@ -98,7 +98,14 @@ void GameSessionResources::shutdown(){auto& env=environment;auto& game=*env.game
     // destinations (10 restart, 11 next, 13 retry) defer to the lock; a real
     // exit still forces the stop.
     const bool restart=*env.pending_screen==10||*env.pending_screen==11||*env.pending_screen==13;
-    const bool keep_locked=restart&&env.practice&&practice_bgm_stop(*env.practice);
+    bool keep_locked=false;
+    if(env.practice){
+        if(restart)keep_locked=practice_bgm_stop(*env.practice);
+        // A real exit forces the stop below, so drop the ElBgmTest lock/block
+        // state here too; otherwise the stale lock would swallow the first play
+        // of the same track in a later game and leave it silent.
+        else{env.practice->el_bgm_lock=-1;env.practice->el_bgm_block=false;}
+    }
 #else
     const bool keep_locked=false;
 #endif
