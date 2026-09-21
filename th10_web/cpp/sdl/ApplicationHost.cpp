@@ -15,6 +15,7 @@ extern "C" void sdl_audio_pump();
 extern "C" void sdl_audio_pause(th10::u32);
 extern "C" void sdl_native_input(th10::browser::Application*);
 EM_JS(int, browser_prepare_frame, (), { return Module['runtimePrepare'] ? Module['runtimePrepare']() : 0; });
+EM_JS(int, th10_limit_presentation_to_60, (), { return Module['eaglerOptions']?.limitPresentationTo60 ? 1 : 0; });
 EM_JS(void, browser_finish_frame, (int result,double milliseconds), { Module['runtimeFinish'](result,milliseconds); });
 EM_JS(void, browser_loop_stopped, (), { if(Module['runtimeStopped'])Module['runtimeStopped'](); });
 namespace {
@@ -73,7 +74,10 @@ EM_BOOL frame(double timestamp,void* epoch){
     // Some Emscripten SDL builds fall back to millisecond gettimeofday for
     // performance counters. Use the display's timestamp for cadence, avoiding
     // a late/early callback's CPU work moving the next deadline across a VSync.
-    const bool presentation_ready=interpolation_ready(),fast=touhou::sdl::PresentationCadence::fast_sample(delta);if(presentation_ready)presentation.advance(delta);else presentation.reset();if(!presentation.high_refresh||!fast)presentation_primed=false;
+    // Match TH08: locked presentation uses the authored fixed-tick draw, with
+    // no extra interpolated draws. Keep logic/input and audio cadence intact.
+    const bool limit60=th10_limit_presentation_to_60()!=0;
+    const bool presentation_ready=interpolation_ready()&&!limit60,fast=touhou::sdl::PresentationCadence::fast_sample(delta);if(presentation_ready)presentation.advance(delta);else presentation.reset();if(!presentation.high_refresh||!fast)presentation_primed=false;
     const bool tick_due=cadence.advance(delta)!=0;int result=0;sdl_defer(1);
     if(tick_due){sdl_native_input(application);result=application->step(true);}
     const bool high=presentation.high_refresh&&interpolation_ready();if(high&&fast&&!presentation_primed&&tick_due)presentation_primed=true;const bool interpolate=high&&fast&&presentation_primed;float frame_alpha=1.0f;
