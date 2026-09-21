@@ -19,6 +19,13 @@ node portable/build.mjs --th10
 
 Build outputs are written below `th10_web/artifacts/` and are intentionally not tracked.
 
+## Replay logic verification
+
+The [TH10 Replay verifier](tools/replay-verifier/README.md) publishes
+content-addressed original traces for a fast four-Demo gate and complete
+Lunatic/Extra daily regression. Normal checks do not require the retail
+executable; regenerating an oracle is a separate advanced maintenance task.
+
 ## Assets and licensing
 
 This repository does not include original Touhou executable, data, music, replay, or save files. A runnable package must be assembled locally from files you are legally allowed to use.

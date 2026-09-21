@@ -15,5 +15,7 @@ export default {
     });
   },
   createController: (runtime, identity) => new LabController(runtime, identity),
-  installReplay: (runtime, bytes) => runtime.command({command: 'write', path: 'replay/th10_01.rpyx', bytes}),
+  // Presentation Lab accepts the retail Replay payload directly.  The .rpyx
+  // name is reserved for files that actually carry the touch-motion trailer.
+  installReplay: (runtime, bytes) => runtime.command({command: 'write', path: 'replay/th10_01.rpy', bytes}),
 };
