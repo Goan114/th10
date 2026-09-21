@@ -1,5 +1,6 @@
 #include "AnmProjection.hpp"
 #include "GameMath.hpp"
+#include "PresentationAudit.hpp"
 namespace th10 {
 namespace {
 Extended sum(float a,float b,float c){return number(a)+number(b)+number(c);}
@@ -70,7 +71,7 @@ i32 AnmProjection::draw_projected(AnmVm& vm,bool fog_enabled){
 // 0x444ce0. A pretransformed triangle strip bypasses the quad arena.
 i32 AnmProjection::draw_strip(AnmVm& vm,const void* vertices,u32 count){
     if((vm.flags&3)!=3||!(vm.color>>24))return -1;auto& manager=renderer.manager;auto& platform=renderer.environment;
-    renderer.flush();if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;platform.set_texture(manager.current_texture);}if(manager.cached_draw_state[2]!=3){platform.vertex_format(Layouts::Screen);manager.cached_draw_state[2]=3;}renderer.apply_state(vm);RenderCommands(platform).SetDiffuseArg(TextureArg::Diffuse);platform.draw_triangles(Primitives::Strip,count-2,vertices,28);return 0;
+    renderer.flush();if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;platform.set_texture(manager.current_texture);}if(manager.cached_draw_state[2]!=3){platform.vertex_format(Layouts::Screen);manager.cached_draw_state[2]=3;}presentation_audit::capture(vm,static_cast<const AnmVertex*>(vertices),count,4);renderer.apply_state(vm);RenderCommands(platform).SetDiffuseArg(TextureArg::Diffuse);platform.draw_triangles(Primitives::Strip,count-2,vertices,28);return 0;
 }
 // 0x444760. Draw the model-space vertex buffer with world and UV transforms.
 i32 AnmProjection::draw_model(AnmVm& vm){
@@ -83,6 +84,6 @@ i32 AnmProjection::draw_model(AnmVm& vm){
     // Both original scroll checks read U. A V-only scroll does not invalidate
     // an unchanged sprite's texture transform, which is preserved here.
     if(manager.current_uv_sprite!=vm.sprite||vm.uv_offset.x!=0){manager.current_uv_sprite=vm.sprite;auto uv=vm.uv_matrix;uv.elements[2][0]=Scalar::add(vm.sprite->u0,vm.uv_offset.x);uv.elements[2][1]=Scalar::add(vm.sprite->v0,vm.uv_offset.y);platform.set_transform(Matrices::Texture,uv);}
-    if(manager.cached_draw_state[2]!=2){platform.stream_source(manager.model_vertex_buffer,20);platform.vertex_format(Layouts::World);RenderCommands(platform).SetDiffuseArg(TextureArg::Factor);manager.cached_draw_state[2]=2;}platform.draw_buffer(Primitives::Strip,0,2);return 0;
+    if(manager.cached_draw_state[2]!=2){platform.stream_source(manager.model_vertex_buffer,20);platform.vertex_format(Layouts::World);RenderCommands(platform).SetDiffuseArg(TextureArg::Factor);manager.cached_draw_state[2]=2;}presentation_audit::capture_model(vm,manager.model_vertices,4,5);platform.draw_buffer(Primitives::Strip,0,2);return 0;
 }
 }

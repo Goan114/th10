@@ -1,4 +1,5 @@
 #include "AnmRenderer.hpp"
+#include "PresentationAudit.hpp"
 #include "GameMath.hpp"
 #include <cmath>
 #include "../../../portable/numeric/SpriteNumber.hpp"
@@ -101,7 +102,7 @@ i32 AnmRenderer::submit(const AnmVm& vm,u32 flags,bool flip_u){
     if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;flush();environment.set_texture(manager.current_texture);}
     if(manager.cached_draw_state[2]!=1){flush();manager.cached_draw_state[2]=1;}
     if(!(flags&2)){u32 color=vm.flags&0x8000?vm.secondary_color:vm.color;if(manager.tint_enabled){u32 result=0;for(u32 shift=0;shift<32;shift+=8)result|=modulate_channel(color>>shift,manager.tint>>shift)<<shift;color=result;}for(u32 i=0;i<4;++i)q[i].color=color;}
-    apply_state(vm);return append(q);
+    presentation_audit::capture(vm,q,4);apply_state(vm);return append(q);
 }
 // 0x4451c0. The custom mesh and matrix modes have their own render paths.
 i32 AnmRenderer::draw(AnmVm& vm){if((vm.flags&3)!=3||!(vm.color>>24))return -1;const auto mode=(vm.flags>>22)&15;if(mode==0)return submit(vm,axis_geometry(vm,environment.quad,true));if(mode==2)return submit(vm,axis_geometry(vm,environment.quad,false));if(mode==1||mode==3)return submit(vm,rotated_geometry(vm,environment.quad));if(mode<=9)return environment.special_draw(manager,vm,mode);return 0;}

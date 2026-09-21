@@ -1,8 +1,9 @@
 #include "AnmRenderer.hpp"
+#include "PresentationAudit.hpp"
 namespace th10 {
 // 0x444dc0. Caller already supplied projected positions, color and UVs.
 i32 AnmRenderer::submit_prebuilt(const AnmVm& vm,const AnmVertex* quad){
-    if((vm.flags&3)!=3||!(vm.color>>24))return -1;if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;flush();environment.set_texture(manager.current_texture);}if(manager.cached_draw_state[2]!=1){flush();manager.cached_draw_state[2]=1;}apply_state(vm);return append(quad);
+    if((vm.flags&3)!=3||!(vm.color>>24))return -1;if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;flush();environment.set_texture(manager.current_texture);}if(manager.cached_draw_state[2]!=1){flush();manager.cached_draw_state[2]=1;}presentation_audit::capture(vm,quad,4,1);apply_state(vm);return append(quad);
 }
 // 0x444e60 / 0x444fa0. Untextured 20-byte strips/fans force diffuse-only stages.
 // The cache invalidation belongs to the global manager, as in the original.
@@ -15,7 +16,7 @@ i32 AnmRenderer::draw_color_mesh(const AnmVm& vm,const void* vertices,u32 count,
 }
 // 0x4450e0. This entry deliberately omits the generic visibility check.
 i32 AnmRenderer::draw_textured_fan(const AnmVm& vm,const void* vertices,u32 count){
-    flush();if(manager.cached_draw_state[2]!=3){environment.vertex_format(Layouts::Screen);manager.cached_draw_state[2]=3;}apply_state(vm);if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;environment.set_texture(manager.current_texture);}
+    flush();if(manager.cached_draw_state[2]!=3){environment.vertex_format(Layouts::Screen);manager.cached_draw_state[2]=3;}presentation_audit::capture(vm,static_cast<const AnmVertex*>(vertices),count,2);apply_state(vm);if(manager.current_texture!=vm.sprite->texture){manager.current_texture=vm.sprite->texture;environment.set_texture(manager.current_texture);}
     auto& active=environment.global_manager?*environment.global_manager:manager;AnmRenderer active_renderer{active,environment};active_renderer.flush();RenderCommands(environment).SetDepthMask(false);RenderCommands(environment).SetDiffuseArg(TextureArg::Diffuse);environment.draw_triangles(Primitives::Fan,count-2,vertices,28);return 0;
 }
 // 0x444b10 / 0x444be0. Independent even/odd walks preserve their accumulated UV
