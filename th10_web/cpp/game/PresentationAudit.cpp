@@ -1,5 +1,6 @@
 #include "PresentationAudit.hpp"
 #ifdef TH_PRESENTATION_AUDIT
+#include "AnmManager.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <utility>
@@ -39,6 +40,11 @@ void capture(const AnmVm& vm,const AnmVertex* vertices,u32 count,u32 part) noexc
     float left=vertices[0].position.x,top=vertices[0].position.y,right=left,bottom=top;
     for(u32 i=0;i<record.vertex_count;++i){const auto& vertex=vertices[i];left=std::min(left,vertex.position.x);top=std::min(top,vertex.position.y);right=std::max(right,vertex.position.x);bottom=std::max(bottom,vertex.position.y);record.vertices[i][0]=vertex.position.x;record.vertices[i][1]=vertex.position.y;record.vertices[i][2]=vertex.position.z;record.vertices[i][3]=vertex.uv.x;record.vertices[i][4]=vertex.uv.y;}
     record.bounds[0]=left;record.bounds[1]=top;record.bounds[2]=right;record.bounds[3]=bottom;current.records.push_back(record);
+}
+void capture_model(const AnmVm& vm,const AnmModelVertex* vertices,u32 count,u32 part) noexcept{
+    if(!vertices||!count)return;AnmVertex converted[MaxVertices]{};const u32 copied=std::min(count,MaxVertices);
+    for(u32 i=0;i<copied;++i){converted[i].position=vertices[i].position;converted[i].uv=vertices[i].uv;}
+    capture(vm,converted,count,part);
 }
 }
 extern "C" {

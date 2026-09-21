@@ -7,9 +7,17 @@ owned by the pinned `third_party/eagler-common` revision.
 Current implementation milestone: isolated diagnostic build/package profile,
 non-destructive freeze/resume, complete fixed-tick driver, original reference
 frames and normalized ANM submission records. The owner registry, draw-only
-state-purity evidence, untextured custom geometry and automatic Replay
-navigation are explicitly incomplete and must not be reported as a finished
-title adaptation.
+complete state-purity evidence, inactive untextured mesh paths, non-ANM screen
+rectangles, projected model pixels and
+automatic Replay navigation are explicitly incomplete and must not be
+reported as a finished title adaptation.  The ANM observer covers regular
+quads, prebuilt quads, textured fans, projected strips and model-buffer
+submissions; model-buffer records remain in local coordinates.
+State evidence currently detects changes in lifecycle, economy/input/RNG,
+authored ANM fields, interpolation sidecars, Replay cursors and host cadence.
+Because gameplay actor pools, non-pool/embedded ANM VMs, audio internals and
+non-ANM effects remain uncovered, a clean sweep is intentionally reported as
+purity `unknown`.
 
 The common workbench and TH10 loopback server are wired, but require a fresh
 diagnostic build/package before launch.  `start-lab.ps1 -Build` performs that

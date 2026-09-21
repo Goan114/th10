@@ -12,4 +12,6 @@ export const TH10_PRESENTATION_LAB_EXPORTS = Object.freeze([
   'audit_reference_draw_serial', 'audit_reference_dropped', 'audit_stride',
   'audit_timing_records', 'audit_timing_capacity', 'audit_timing_count',
   'audit_timing_next', 'audit_timing_stride', 'audit_timing_reset',
+  'audit_state',
+  'replay_verifier_trace',
 ]);
