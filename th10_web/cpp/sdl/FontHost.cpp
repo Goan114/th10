@@ -1,4 +1,7 @@
 #include "../platform/Fonts.hpp"
+#ifdef TH_ENABLE_THCRAP
+#include "../game/Localization.hpp"
+#endif
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <algorithm>
@@ -23,9 +26,34 @@ u32 add(Object::Kind kind){const auto id=next++;auto value=std::make_unique<Obje
 bool load(const char* name,std::vector<u8>& output){size_t size=0;void* bytes=SDL_LoadFile(name,&size);if(!bytes)return false;output.assign(static_cast<u8*>(bytes),static_cast<u8*>(bytes)+size);SDL_free(bytes);return true;}
 void initialize(){if(initialized)return;if(!TTF_Init()||!load("/fonts/blend.bin",blend)||!load("/fonts/codepages.bin",codepages)||codepages.size()!=262144)std::abort();initialized=true;}
 void utf8(std::string& out,u32 c){if(c<128)out+=char(c);else if(c<2048){out+=char(0xc0|(c>>6));out+=char(0x80|(c&63));}else{out+=char(0xe0|(c>>12));out+=char(0x80|((c>>6)&63));out+=char(0x80|(c&63));}}
+bool utf8_valid(const u8* text,u32 size){
+    if(!text)return size==0;
+    const u8* end=text+size;
+    while(text<end){
+        const u8 first=*text;u32 length;
+        if(first<0x80)length=1;
+        else if(first>=0xc2&&first<=0xdf)length=2;
+        else if(first>=0xe0&&first<=0xef)length=3;
+        else if(first>=0xf0&&first<=0xf4)length=4;
+        else return false;
+        if(u32(end-text)<length)return false;
+        for(u32 i=1;i<length;i++)if((text[i]&0xc0)!=0x80)return false;
+        text+=length;
+    }
+    return true;
+}
 std::string decode(const char* bytes,u32 length,u32 charset){std::string result;const auto* data=reinterpret_cast<const u8*>(bytes);const auto* map=codepages.data()+(charset==134?131072:0);
     for(u32 i=0;i<length;i++){u32 code=data[i];const bool lead=charset==134?(code>=0x81&&code<=0xfe):((code>=0x81&&code<=0x9f)||(code>=0xe0&&code<=0xfc));if(lead&&i+1<length&&data[i+1])code=(code<<8)|data[++i];const auto c=u32(map[code*2])|(u32(map[code*2+1])<<8);utf8(result,c);}
     return result;
+}
+std::string decode_or_utf8(const char* bytes,u32 length,u32 charset){
+#ifdef TH_ENABLE_THCRAP
+    // A pack substitutes prepared UTF-8 text into the channels that normally
+    // carry CP932/CP936 game bytes; detect it at this rasterization boundary.
+    if(Localization::Active()&&utf8_valid(reinterpret_cast<const u8*>(bytes),length))
+        return std::string(bytes,length);
+#endif
+    return decode(bytes,length,charset);
 }
 u32 blend_channel_4444(u32 before,u32 target,u32 coverage){
     const u32 source=(target*15+127)/255;
@@ -40,10 +68,17 @@ u32 fonts_context(){return add(Object::Context);}
 u32 fonts_select(u32 context,u32 id){auto& dc=get(context);auto it=objects.find(id);if(it==objects.end())return 0;u32& target=it->second->kind==Object::Font?dc.font:dc.bitmap;const auto old=target;target=id;return old;}
 void fonts_delete_context(u32 id){objects.erase(id);}
 void fonts_delete_object(u32 id){objects.erase(id);}
-u32 fonts_font(i32 height,const char*,u32 charset){initialize();const auto id=add(Object::Font);auto& f=get(id);f.charset=charset;f.height=height;f.face=TTF_OpenFont(charset==134?"/fonts/simhei.ttf":"/fonts/msgothic.ttc",float(height));if(!f.face){std::fprintf(stderr,"SDL_ttf: %s\n",SDL_GetError());std::abort();}TTF_SetFontKerning(f.face,false);TTF_SetFontHinting(f.face,TTF_HINTING_NORMAL);return id;}
+u32 fonts_font(i32 height,const char*,u32 charset){initialize();const auto id=add(Object::Font);auto& f=get(id);f.charset=charset;f.height=height;
+#ifdef TH_ENABLE_THCRAP
+ // A language pack ships its own subset face under /thcrap/th10/fonts/; prefer
+ // it so translated text has full coverage before the original faces are used.
+ if(const char* pack=Localization::FontFile()){const std::string path=std::string("/thcrap/th10/fonts/")+pack;f.face=TTF_OpenFont(path.c_str(),float(height));}
+#endif
+ if(!f.face)f.face=TTF_OpenFont(charset==134?"/fonts/simhei.ttf":"/fonts/msgothic.ttc",float(height));
+ if(!f.face){std::fprintf(stderr,"SDL_ttf: %s\n",SDL_GetError());std::abort();}TTF_SetFontKerning(f.face,false);TTF_SetFontHinting(f.face,TTF_HINTING_NORMAL);return id;}
 void fonts_background(u32 id,u32 mode){get(id).mode=mode;}
 void fonts_color(u32 id,u32 color){get(id).color=color;}
-void fonts_text(u32 id,i32 x,i32 y,const char* bytes,u32 length){auto& dc=get(id);auto& b=get(dc.bitmap);auto& f=get(dc.font);const auto value=decode(bytes,length,f.charset);if(value.empty())return;
+void fonts_text(u32 id,i32 x,i32 y,const char* bytes,u32 length){auto& dc=get(id);auto& b=get(dc.bitmap);auto& f=get(dc.font);const auto value=decode_or_utf8(bytes,length,f.charset);if(value.empty())return;
     // Shadow and foreground use identical coverage. Keep only the most recent
     // run per font, so those two original draws share one TTF rasterization.
     if(!f.raster||f.text!=value){const SDL_Color white{255,255,255,255};auto* original=TTF_RenderText_Blended(f.face,value.c_str(),value.size(),white);if(!original){failures++;return;}auto* raster=SDL_ConvertSurface(original,SDL_PIXELFORMAT_RGBA32);SDL_DestroySurface(original);if(!raster){failures++;return;}if(f.raster)SDL_DestroySurface(f.raster);f.raster=raster;f.text=value;}

@@ -1,4 +1,5 @@
 #include "SpellCard.hpp"
+#include "Localization.hpp"
 namespace th10 {
 static AnmVm* child_script(AnmVm* parent,std::int16_t script){for(auto* node=&parent->child_node;node;node=node->next)if(node->value->script_index==script)return node->value;return nullptr;}
 // 0x409280. Keep the title, script creation and saved-record updates in their
@@ -12,7 +13,9 @@ void SpellCard::start(i32 id,const char* title,i32 frames,SpellEnvironment& env)
     title_animations[0]=env.create_animation(SpellAnimationFile::Effects,1);
     title_animations[1]=env.create_animation(SpellAnimationFile::Text,72);
     title_animations[2]=env.create_animation(SpellAnimationFile::Effects,2);
-    env.draw_name(env.registry->find_and_clear(title_animations[1]),title);env.play_sound(14);
+    // Stored records keep the original Japanese name (like th08); only the
+    // announcement display point looks the translated name up by spell number.
+    env.draw_name(env.registry->find_and_clear(title_animations[1]),Localization::SpellName(u32(id),title));env.play_sound(14);
     circle_animation=env.create_animation(SpellAnimationFile::Bullets,417);circle_position=env.boss_position();env.registry->set_position(circle_animation,circle_position,true);
     child_script(env.registry->find_and_clear(circle_animation),415)->integer_variables[2]=frames;
     child_script(env.registry->find_and_clear(circle_animation),416)->integer_variables[2]=frames;duration=frames;

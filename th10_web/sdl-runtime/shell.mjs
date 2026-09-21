@@ -41,6 +41,43 @@ async function migrateSaves(){
 }
 async function mountData(){await mountManagedData(Module,{game,parentWindow:parent,query,emit});}
 async function installResources(resources=[]){return installHostResources(Module,resources,{game,emit});}
+// thcrap-style offline language pack (eagler-touhou/1 configure.runtimePack):
+// bytes arrive inline, already hash-verified by the Launcher. The shell
+// re-validates schema/game/language/paths/sizes before touching MEMFS.
+let runtimePackFiles=[];
+function assertRuntimePackManifest(manifest,pack){
+ if(manifest?.schema!=='eagler-touhou/thcrap-static-pack/1'||manifest.game!==game||
+    manifest.language!==pack.language||typeof manifest.runtimeVersion!=='string'||
+    !Array.isArray(manifest.files)||manifest.files.length>256)throw Error('Invalid TH10 language pack manifest');
+ for(const file of manifest.files)
+  if(typeof file?.path!=='string'||!file.path.startsWith('/thcrap/th10/')||file.path.includes('\\')||file.path.includes('..')||
+     !Number.isInteger(file.bytes)||file.bytes<0)throw Error('Invalid TH10 language pack file');
+}
+async function installRuntimePack(pack){
+ if(launched)throw Error('Runtime resources cannot be changed after launch');
+ if(typeof pack?.url!=='string'||typeof pack.language!=='string'||
+    !Number.isInteger(pack.bytes)||pack.bytes<=0||
+    !pack.manifest||!Array.isArray(pack.files))throw Error('Invalid TH10 language pack');
+ const url=new URL(pack.url,location.href);
+ if(url.origin!==location.origin)throw Error('Cross-origin TH10 language pack');
+ assertRuntimePackManifest(pack.manifest,pack);
+ const expected=new Map(pack.manifest.files.map(file=>[file.path,file]));
+ if(pack.files.length!==expected.size)throw Error('TH10 language pack file count mismatch');
+ const verified=[];
+ for(const file of pack.files){
+  if(typeof file?.path!=='string'||!file.path.startsWith('/thcrap/th10/')||file.path.includes('\\')||file.path.includes('..')||
+     !(file.bytes instanceof Uint8Array))throw Error('Invalid TH10 language pack path');
+  const declaration=expected.get(file.path);
+  if(!declaration||file.bytes.length!==declaration.bytes)throw Error(file.path+': size mismatch');
+  verified.push({path:file.path,bytes:file.bytes});
+ }
+ for(const path of runtimePackFiles){try{Module.FS.unlink(path);}catch{}}
+ runtimePackFiles=[];
+ for(const file of verified){
+  Module.FS.mkdirTree(file.path.slice(0,file.path.lastIndexOf('/')));
+  Module.FS.writeFile(file.path,file.bytes,{canOwn:true});runtimePackFiles.push(file.path);
+ }
+}
 function applyOptions(){applyTouchOptions(core,options);if(app)core.application_touch_display?.(app,options.alwaysHitbox?1:0);}
 function status(){return Array.from(new Int32Array(core.memory.buffer,core.sdl_game_status(),10));}
 function save(){if(app)core.application_save(app);return sync(false);}
@@ -54,14 +91,14 @@ function launch(){
  if(launched)return;
  ensureSharedFontAlias(Module,language);
  const mode=Module.touhouMusicMode||'none';music=mode!=='none'&&mode!=='midi';core.sdl_ogg_decode_mode?.(options.oggDecodeMode==='full');
- core.sdl_music_enabled?.(music);app=core.sdl_game_open(language==='chs',Date.now()&65535);if(!app)throw Error('C++ game initialization failed');
+ core.sdl_music_enabled?.(music);app=core.sdl_game_open(false,Date.now()&65535);if(!app)throw Error('C++ game initialization failed');
  applyOptions();launched=true;first=false;lastPresented=0;lastHealth=performance.now();lastFrame=0;frames=0;maxGap=0;
  canvas.focus({preventScroll:true});core.sdl_loop_pause(1);if(!document.hidden)void resumeForegroundAudio();core.sdl_loop_start(app);
  emit('runtime-info',{renderer:'SDL3 / WebGL2 / C++',architecture:'eagler-touhou/1',version:'3.5.1-sdl3'});
 }
 async function command(message){
  switch(message.command){
- case 'configure':if(launched)throw Error('Cannot configure a running game');language=message.language==='lang_zh-hans'?'chs':'jp';options=normalizeOptions(message.options);if(!['ogg','midi','none'].includes(message.music))throw Error('Invalid music mode');Module.touhouMusicMode=message.music;Module.eaglerOptions=options;music=message.music!=='none';await installResources(message.sharedResources);await installResources(message.runtimeResources);await installResources(message.resources);applyOptions();return {};
+ case 'configure':if(launched)throw Error('Cannot configure a running game');language=message.language==='lang_zh-hans'?'chs':'jp';options=normalizeOptions(message.options);if(!['ogg','midi','none'].includes(message.music))throw Error('Invalid music mode');Module.touhouMusicMode=message.music;Module.eaglerOptions=options;music=message.music!=='none';await installResources(message.sharedResources);await installResources(message.runtimeResources);await installResources(message.resources);if(message.runtimePack)await installRuntimePack(message.runtimePack);applyOptions();return {};
  case 'resources':await installResources(message.resources);return {};
  case 'keyboard':{const code=runtimeKeyboardCode(message);if(!code)return {};cstring(code,p=>core.sdl_key(p,!!message.down));return {};}
  case 'keyboard-clear':core.sdl_keys_clear();return {};

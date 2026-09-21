@@ -1,5 +1,46 @@
 #include "AnmText.hpp"
+#ifdef TH_ENABLE_THCRAP
+#include "Localization.hpp"
+#endif
 namespace th10 {
+namespace {
+#ifdef TH_ENABLE_THCRAP
+bool text_utf8_valid(const unsigned char* text,std::size_t size){
+    const unsigned char* end=text+size;
+    while(text<end){
+        const unsigned char first=*text;std::size_t length;
+        if(first<0x80)length=1;
+        else if(first>=0xc2&&first<=0xdf)length=2;
+        else if(first>=0xe0&&first<=0xef)length=3;
+        else if(first>=0xf0&&first<=0xf4)length=4;
+        else return false;
+        if(std::size_t(end-text)<length)return false;
+        for(std::size_t index=1;index<length;index++)if((text[index]&0xc0)!=0x80)return false;
+        text+=length;
+    }
+    return true;
+}
+#endif
+// Double-byte original encodings use one byte per display column (CP932/CP936),
+// so byte length is the original column model. A pack's UTF-8 text needs the
+// real column count instead: ASCII 1, everything else 2.
+u32 display_columns(const char* text){
+    const std::size_t size=std::strlen(text);
+#ifdef TH_ENABLE_THCRAP
+    if(Localization::Active()&&text_utf8_valid(reinterpret_cast<const unsigned char*>(text),size)){
+        u32 columns=0;const unsigned char* cursor=reinterpret_cast<const unsigned char*>(text);
+        const unsigned char* end=cursor+size;
+        while(cursor<end){
+            const unsigned char first=*cursor;
+            const std::size_t length=first<0x80?1:(first&0xe0)==0xc0?2:(first&0xf0)==0xe0?3:4;
+            columns+=first<0x80?1:2;cursor+=length;
+        }
+        return columns;
+    }
+#endif
+    return u32(size);
+}
+}
 // 0x4479d0. Sprite coordinates are converted separately, with truncation.
 void AnmText::draw_sprite(const AnmSprite& sprite,void* texture,i32 offset,i32 size,u32 color,const char* text,bool flat,AnmTextEnvironment& env){
     if(size<=0)size=17;else if(size<=8)return;
@@ -12,7 +53,7 @@ void AnmText::draw(AnmVm& vm,u32 color,const char* text,TextAlignment alignment,
     i32 size=vm.text_settings[0],offset=0;
     if(alignment!=TextAlignment::Left){
         if(!size)size=17;
-        const u32 width=static_cast<u32>(size-1)*static_cast<u32>(std::strlen(text));
+        const u32 width=static_cast<u32>(size-1)*display_columns(text);
         if(alignment==TextAlignment::Right)offset=(number(vm.sprite->width)-Extended::from_int64(width>>1)).truncate_int();
         else offset=static_cast<i32>(static_cast<u32>(Scalar::truncate(vm.sprite->width)/2)-(width>>2));
     }

@@ -55,3 +55,14 @@ u32 browser_list(const char* directory,const char* pattern,u32 index,char* out,u
 __attribute__((export_name("sdl_files_root"))) void sdl_files_root(u32 chinese){save_root=chinese?"/savesth10/chs":"/savesth10/jp";parents(save_root+"/replay/");}
 __attribute__((export_name("sdl_file_handles"))) u32 sdl_file_handles(){return handles.size();}
 }
+namespace th10 {
+// Raw host-file read used by RuntimeOverride to reach /thcrap/th10/<relative>
+// pack entries without going through the archive writer/reader bookkeeping.
+bool sdl_read_file(const char* path,std::vector<u8>& out){
+    if(!path||!*path)return false;
+    std::size_t size=0;void* bytes=SDL_LoadFile(path,&size);
+    if(!bytes)return false;
+    out.assign(static_cast<u8*>(bytes),static_cast<u8*>(bytes)+size);
+    SDL_free(bytes);return true;
+}
+}
