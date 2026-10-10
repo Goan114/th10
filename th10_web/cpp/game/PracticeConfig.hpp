@@ -1,7 +1,8 @@
 #pragma once
 #include "Types.hpp"
-#include "PracticeInput.hpp"
-#include "PracticeSpeed.hpp"
+#include <eagler/thprac/PracticeInput.hpp>
+#include <eagler/thprac/PracticeSpeed.hpp>
+#include "PracticeCadence.hpp"
 #include <string>
 #include <vector>
 namespace th10 {
@@ -38,7 +39,7 @@ struct PracticeState {
     bool all_clear_bonus=false;
     // Purple TH10 EHOOK 0x426A15: optionally consume lives until the last one.
     bool map_inf_life_to_no_continue=false;
-    PracticeInput input;
+    eagler::thprac::PracticeInput input;
     bool show_keyboard_monitor=false;
     void (*record_keys)(u32)=nullptr;
     // TH10's Tab tracker keeps its own counters (TH10Info) instead of reading
@@ -50,7 +51,7 @@ struct PracticeState {
     bool enable_lock_timer=false,lock_timer_pending=false;
     u32 lock_timer=0;
     bool flip_screen_y=false;
-    PracticeSpeed speed;bool keep_player_speed=false;
+    eagler::thprac::PracticeSpeed speed;bool keep_player_speed=false;
     // Native 0x406e03 sprite-override bypass, consumed by BulletCommands.
     bool real_bullet_sprite=false;
 };

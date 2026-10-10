@@ -8,7 +8,8 @@
 #include "Renderer.hpp"
 #ifdef TH_ENABLE_THPRAC
 #include "ThpracUi.hpp"
-#include "../game/PracticeSpeed.hpp"
+#include <eagler/thprac/PracticeSpeed.hpp>
+#include "../game/PracticeCadence.hpp"
 #endif
 #include "../game/PresentationAudit.hpp"
 #include <algorithm>

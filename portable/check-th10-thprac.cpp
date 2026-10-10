@@ -39,7 +39,7 @@ touhou::input::MotionTrack touched(){
 }
 }
 int main(){
-    {PracticeSpeed speed;assert(speed.interval(false,false,false,false)==1./60.);
+    {eagler::thprac::PracticeSpeed speed;assert(speed.interval(false,false,false,false)==1./60.);
     assert(speed.interval(true,false,true,false)==1./15.);speed.fps_replay_fast=240;
     assert(speed.interval(true,true,false,false)==1./240.);speed.fps=0;assert(speed.interval(false,false,false,false)==1.);
     PracticeCadence cadence;cadence.period=1./120.;assert(cadence.advance(1./60.)==2);cadence.reset();assert(cadence.debt==0);}
@@ -62,7 +62,7 @@ int main(){
     gameplay.lock_timer_pending=true;practice_reset_lock_timer(gameplay);practice_consume_lock_timer(gameplay);assert(gameplay.lock_timer==0);
     gameplay.enabled=false;practice_point_collected(gameplay,true);assert(gameplay.tracker_yellow==1);}
     // Shared purple input tools: native state filters and 15-tick retry.
-    PracticeInput input;u8 keys[256]{};keys[88]=keys[67]=keys[90]=keys[160]=keys[161]=128;
+    eagler::thprac::PracticeInput input;u8 keys[256]{};keys[88]=keys[67]=keys[90]=keys[160]=keys[161]=128;
     input.disable_xkey=input.disable_zkey=input.disable_shiftkey=true;input.apply(keys);
     assert(!keys[88]&&!keys[67]&&!keys[90]&&!keys[160]&&!keys[161]);
     input.force_shiftkey=true;input.apply(keys);assert(keys[160]==128&&keys[161]==128);

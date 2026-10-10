@@ -12,7 +12,7 @@
 #include "../game/PracticeGameplay.hpp"
 #include "../game/StageHints.hpp"
 #include "../game/PracticeLicense.hpp"
-#include "../game/PracticeKeyMonitor.hpp"
+#include <eagler/thprac/PracticeKeyMonitor.hpp>
 #include "Renderer.hpp"
 #include "imgui.h"
 #include "imgui_freetype.h"
@@ -45,19 +45,19 @@ enum Vk {VK_BACK=8,VK_TAB=9,VK_RETURN=13,VK_SHIFT=16,VK_CONTROL=17,VK_MENU=18,VK
 const char* tr(const char* zh,const char* en,const char* ja){return locale==0?zh:locale==2?ja:en;}
 const char* label(const char* const* values){return values[locale];}
 void help_marker(const char* const* description){ImGui::SameLine();ImGui::TextDisabled("(?)");if(ImGui::IsItemHovered())ImGui::SetTooltip("%s",label(description));}
-PracticeKeyMonitor key_monitor;
+eagler::thprac::PracticeKeyMonitor key_monitor;
 std::string clipboard_text;
 const char* clipboard_get(void*){return clipboard_text.c_str();}
 void clipboard_set(void*,const char* text){clipboard_text=text?text:"";EM_ASM({navigator.clipboard?.writeText(UTF8ToString($0)).catch(()=>{});},clipboard_text.c_str());}
-#include "PracticeKeyHud.inc"
+#include <eagler/thprac/PracticeKeyHud.inc>
 struct PracticeCounter {int64_t QuadPart=0;};
 void practice_counter_frequency(PracticeCounter* c){c->QuadPart=1000000000;}
 void practice_counter_now(PracticeCounter* c){c->QuadPart=int64_t(SDL_GetTicksNS());}
 std::function<unsigned()> practice_random_generator(unsigned minimum,unsigned maximum){return std::bind(std::uniform_int_distribution<unsigned>(minimum,maximum),std::mt19937(std::mt19937::result_type(std::time(nullptr))));}
-#include "PracticeReaction.inc"
+#include <eagler/thprac/PracticeReaction.inc>
 THGuiTestReactionTest reaction_test;
 #include "PracticeHints.inc"
-#include "PracticeSpeed.inc"
+#include <eagler/thprac/PracticeSpeed.inc>
 ImTextureID practice_blind_image(Application&,const unsigned char* fallback,size_t length){
  size_t bytes=0;auto* custom=static_cast<unsigned char*>(SDL_LoadFile("/blind.png",&bytes));int w=0,h=0,channels=0;
  auto* image=custom&&bytes<=64*1024*1024?stbi_load_from_memory(custom,int(bytes),&w,&h,&channels,4):nullptr;SDL_free(custom);
