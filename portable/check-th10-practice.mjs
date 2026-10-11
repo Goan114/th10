@@ -23,7 +23,7 @@ const practice=readFileSync(resolve(import.meta.dirname,'../th10_web/sdl-runtime
 assert(!practice.includes("emit('thprac-session'"),'TH10 must keep live practice state Runtime-owned');
 const ui=readFileSync(resolve(import.meta.dirname,'../th10_web/cpp/sdl/ThpracUi.cpp'),'utf8');
 assert(ui.includes('Module.eaglerOptions?.thpracEnabled?1:0'),'disabled thprac must not initialize ImGui or require the optional Unicode font');
-assert(ui.includes('AddFontFromFileTTF("/unifont.otf",16,&config,range)'),'thprac UI must always use the Unicode font');
+assert(/AddFontFromFileTTF\("\/unifont\.otf",16,&config,(?:range|ranges\.Data)\)/.test(ui),'thprac UI must always use the Unicode font');
 assert(!ui.includes('AddFontFromFileTTF("/fonts/msgothic.ttc",16,&config,range)'),'thprac UI must not fall back to MS Gothic');
 assert(ui.includes('io.ConfigDragClickToInputText=desktop_pointer'),'desktop numeric controls must open text input on click-release');
 assert(ui.includes('event.motion.which==SDL_TOUCH_MOUSEID||event.motion.which==SDL_PEN_MOUSEID)return;desktop_pointer=true')&&ui.includes('event.button.which==SDL_TOUCH_MOUSEID||event.button.which==SDL_PEN_MOUSEID)return;desktop_pointer=true'),'touch-generated mouse input must not enable desktop click-to-input behavior');

@@ -15,7 +15,10 @@
 #include <eagler/thprac/PracticeKeyMonitor.hpp>
 #include "Renderer.hpp"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_freetype.h"
+#include <eagler/thprac/PracticeMobilePanels.hpp>
+namespace MobileThprac = eagler::thprac::mobile;
 #include "../../../portable/sdl/third_party/stb_image.h"
 #include <emscripten.h>
 #include <algorithm>
@@ -122,6 +125,7 @@ void toggle_cheat(Application& runtime,int bit){
  auto& p=runtime.state.practice;if(p.replay)return;p.cheats^=1u<<bit;if(p.cheats)p.assisted=true;
 }
 void hotkey_line(const char* key,const char* label,bool& value){
+ if(MobileThprac::enabled){MobileThprac::checkbox(key,label,value);return;}
  const auto cursor=ImGui::GetCursorPos();if(value)ImGui::TextColored({0,1,0,1},"[%s: %s]",key,label);else ImGui::Text("%s: %s",key,label);
  ImGui::SetCursorPos(cursor);const ImVec2 size{ImGui::GetWindowWidth()-ImGui::GetStyle().WindowPadding.x*2,ImGui::GetTextLineHeight()};if(ImGui::InvisibleButton(key,size))value=!value;
 }
@@ -192,7 +196,7 @@ void draw_practice(Application& runtime){
  // While an imgui item is active (text edit or drag), Enter/Escape/Z belong
  // to the widget, not the menu; use last frame's state so the confirming
  // keystroke itself is also swallowed.
- const bool widget_busy=text_editing;text_editing=ImGui::IsAnyItemActive();
+ const bool widget_busy=text_editing||MobileThprac::captures_advanced(advanced_open);text_editing=ImGui::IsAnyItemActive();
  if(practice_keys_armed&&!widget_busy&&(pressed(VK_Z)||pressed(VK_RETURN))){select_current_section(p,difficulty);state.run=p;state.run.warp=0;state.accepted=true;}
  if(practice_keys_armed&&!widget_busy&&(pressed(VK_X)||pressed(VK_ESCAPE))){state.menu=false;if(runtime.title&&runtime.title->value){runtime.title->value->menu.select(runtime.state.game.stage);
 #ifdef TH_ENABLE_THPRAC
@@ -208,29 +212,30 @@ void draw_overlay(Application& runtime){
  drag_hints(runtime);
  if(in_game(runtime)&&runtime.world->actors.player){const auto& p=runtime.world->actors.player->position;RenderBlindView(runtime,{p.x,p.y},{192,0},{32,16},1);if(state.flip_screen_y&&!state.replay)state.assisted=true;}
  if(auto* renderer=touhou::sdl::current())renderer->flip_present_y=state.flip_screen_y;
- if(state.force_boss_move_down){const char* text=label(practice_TH_BOSS_FORCE_MOVE_DOWN);const auto size=ImGui::CalcTextSize(text);auto* draw=ImGui::GetForegroundDrawList();draw->AddRectFilled({120,0},{120+size.x,size.y},0xffcccccc);draw->AddText({120,0},0xffff0000,text);}
- if(state.enable_lock_timer&&(state.cheats&8u)&&in_game(runtime)){
+ const bool tool_visible=(!state.force_boss_move_down&&!(state.enable_lock_timer&&(state.cheats&8u)&&in_game(runtime)))||MobileThprac::draw_tool(MobileThprac::Indicators,"Tools###th10-mobile-tools",{120,65},locale);
+ if(tool_visible&&state.force_boss_move_down){const char* text=label(practice_TH_BOSS_FORCE_MOVE_DOWN);const auto size=ImGui::CalcTextSize(text);auto* draw=ImGui::GetForegroundDrawList();draw->AddRectFilled({120,0},{120+size.x,size.y},0xffcccccc);draw->AddText({120,0},0xffff0000,text);}
+ if(tool_visible&&state.enable_lock_timer&&(state.cheats&8u)&&in_game(runtime)){
   char timer[32];std::snprintf(timer,sizeof timer,"%.2f",state.lock_timer/60.f);
   const auto size=ImGui::CalcTextSize(timer);auto* draw=ImGui::GetForegroundDrawList();
   draw->AddRectFilled({32,0},{110,size.y},IM_COL32(255,255,255,255));
   draw->AddText({110-size.x,0},IM_COL32(0,0,0,255),timer);
  }
  state.record_keys=[](u32 held){key_monitor.record(10,held);};
- if(state.show_keyboard_monitor&&in_game(runtime)){
+ if(state.show_keyboard_monitor&&in_game(runtime)&&MobileThprac::draw_tool(MobileThprac::Keyboard,"Keys###th10-mobile-keys",{420,65},locale)){
   KeyRectStyle style;style.text_color_press=style.text_color_release=IM_COL32(32,32,32,255);
   KeysHUD(10,{1280,0},{840,0},style,true,false);
  }
- if(menu_open){ImGui::SetNextWindowPos({10,10},ImGuiCond_Always);ImGui::SetNextWindowSize({0,0});ImGui::SetNextWindowBgAlpha(.5f);constexpr auto flags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoFocusOnAppearing|ImGuiWindowFlags_NoNav;
-  if(ImGui::Begin("Mod Menu###th10-thprac-overlay",nullptr,flags)){static const char* keys[]{"F1","F2","F3","F4","F5","F6"};const char* labels[]{tr("无敌","Invincibility","無敵"),tr("锁残","Inf. Lives","残機減らない"),tr("锁火力","Inf. Power","霊力減らない"),tr("锁时","Time Lock","残り時間減らない"),tr("自动B","Auto Bomb","自動喰らいボム"),tr("不掉信仰","No faith loss","信仰点減少させない")};
-   for(int i=0;i<6;i++){bool value=state.cheats&(1u<<i);hotkey_line(keys[i],labels[i],value);if(value!=bool(state.cheats&(1u<<i)))toggle_cheat(runtime,i);}bool value=state.everlasting_bgm;hotkey_line("F7",tr("永续BGM","Everlasting BGM","永遠に続くBGM"),value);if(!state.replay)state.everlasting_bgm=value;
-   hotkey_line("Tab",tr("详细信息","In-game information","ゲーム内情報"),tracker_open);
-   value=(state.cheats&64u)!=0;hotkey_line("U",tr("敌方无敌","Enemy Invincibility","敵無敵"),value);if(value!=bool(state.cheats&64u))toggle_cheat(runtime,6);
+ if(MobileThprac::show(MobileThprac::Cheats,menu_open)){ImGui::SetNextWindowPos({10,10},ImGuiCond_Always);ImGui::SetNextWindowSize({0,0});ImGui::SetNextWindowBgAlpha(.5f);constexpr auto flags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoFocusOnAppearing|ImGuiWindowFlags_NoNav;
+  if(MobileThprac::begin(MobileThprac::Cheats, "Mod Menu###th10-thprac-overlay", flags, locale)){static const char* keys[]{"F1","F2","F3","F4","F5","F6"};const char* labels[]{tr("无敌","Invincibility","無敵"),tr("锁残","Inf. Lives","残機減らない"),tr("锁火力","Inf. Power","霊力減らない"),tr("锁时","Time Lock","残り時間減らない"),tr("自动B","Auto Bomb","自動喰らいボム"),tr("不掉信仰","No faith loss","信仰点減少させない")};
+   const bool cheat_disabled=MobileThprac::enabled&&(state.replay||!in_game(runtime));ImGui::BeginDisabled(cheat_disabled);for(int i=0;i<6;i++){bool value=state.cheats&(1u<<i);hotkey_line(keys[i],labels[i],value);if(value!=bool(state.cheats&(1u<<i)))toggle_cheat(runtime,i);}bool value=state.everlasting_bgm;hotkey_line("F7",tr("永续BGM","Everlasting BGM","永遠に続くBGM"),value);if(!state.replay)state.everlasting_bgm=value;
+   ImGui::EndDisabled(cheat_disabled);hotkey_line("Tab",tr("详细信息","In-game information","ゲーム内情報"),tracker_open);
+   ImGui::BeginDisabled(cheat_disabled);value=(state.cheats&64u)!=0;hotkey_line("U",tr("敌方无敌","Enemy Invincibility","敵無敵"),value);if(value!=bool(state.cheats&64u))toggle_cheat(runtime,6);ImGui::EndDisabled(cheat_disabled);
   }ImGui::End();
  }
- if(tracker_open&&in_game(runtime)){
+ if(MobileThprac::show(MobileThprac::Information,tracker_open)&&in_game(runtime)){
   static const char* shots[3][6]={{"灵梦A","灵梦B","灵梦C","魔理沙A","魔理沙B","魔理沙C"},{"ReimuA","ReimuB","ReimuC","MarisaA","MarisaB","MarisaC"},{"霊夢A","霊夢B","霊夢C","魔理沙A","魔理沙B","魔理沙C"}};
   ImGui::SetNextWindowSize({170,0},ImGuiCond_Always);ImGui::SetNextWindowPos({450,150},ImGuiCond_Always);constexpr auto flags=ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoFocusOnAppearing|ImGuiWindowFlags_NoNav;
-  if(ImGui::Begin("Tracker###th10-thprac-tracker",nullptr,flags)){
+  if(MobileThprac::begin(MobileThprac::Information, "Tracker###th10-thprac-tracker", flags, locale)){
    const int shot=std::clamp(runtime.state.game.character*3+runtime.state.game.shot_type,0,5);
    static const char* difficulties[]{"Easy","Normal","Hard","Lunatic","Extra"};char title[96];
    std::snprintf(title,sizeof title,"%s (%s)",difficulties[std::clamp(runtime.state.game.difficulty,0,4)],shots[locale][shot]);
@@ -244,8 +249,8 @@ void draw_overlay(Application& runtime){
   }
   ImGui::End();
  }
- if(advanced_open){ImGui::SetNextWindowPos({0,0},ImGuiCond_Always);ImGui::SetNextWindowSize({640,480},ImGuiCond_Always);ImGui::SetNextWindowBgAlpha(.8f);ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding,0);ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize,0);constexpr auto flags=ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove;
-  if(ImGui::Begin("Advanced Options###th10-thprac-advanced",nullptr,flags)){
+ if(MobileThprac::show(MobileThprac::Advanced,advanced_open)){ImGui::SetNextWindowPos({0,0},ImGuiCond_Always);ImGui::SetNextWindowSize({640,480},ImGuiCond_Always);ImGui::SetNextWindowBgAlpha(.8f);ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding,0);ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize,0);constexpr auto flags=ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove;
+  if(MobileThprac::begin(MobileThprac::Advanced, "Advanced Options###th10-thprac-advanced", flags, locale)){
    ImGui::TextUnformatted(label(practice_TH_ADV_OPT));ImGui::Separator();ImGui::BeginChild("Adv. Options",{0,0});
    hint_options(runtime);
    if(ImGui::CollapsingHeader(label(practice_TH_GAME_SPEED))){GameFPSOpt(state.speed,true);ImGui::Checkbox(label(practice_TH_GAME_SPEED_PLSPD_KEEP),&state.keep_player_speed);}
@@ -283,11 +288,13 @@ void process_event(const SDL_Event& event){if(!initialized)return;if(event.type=
 void mouse(int type,float x,float y){if(auto* r=touhou::sdl::current();r&&r->flip_present_y)y=480-y;mouse_x=x;mouse_y=y;if(type==1||type==2){const bool down=type==1;if(down!=mouse_down){if(pointer_edges.size()>=64){cancel_pointer();return;}pointer_edges.push_back({down,x,y});mouse_down=down;}}}
 void cancel_pointer(){pointer_edges.clear();mouse_down=pointer_sample_down=false;mouse_x=mouse_y=-FLT_MAX;selected_hint=-1;selected_hint_id=0;}
 void update_input(Application& runtime){if(!initialized)return;++input_generation;auto* keys=runtime.input.keyboard_state();const u32 bits=bridge_keys();for(int i=0;i<256;i++){const bool down=keys[i]!=0||bridge_key_down(i,bits);key_pressed[i]=down&&!key_down[i];key_down[i]=down;}auto& state=runtime.state.practice;if(!state.enabled){menu_open=tracker_open=advanced_open=false;publish_menu(false);return;}if(pressed(VK_BACK)&&!ImGui::IsAnyItemActive())menu_open=!menu_open;if((pressed(VK_TAB)||pressed(119))&&!ImGui::IsAnyItemActive()&&in_game(runtime))tracker_open=!tracker_open;if(pressed(VK_F12))advanced_open=!advanced_open;if(menu_open&&in_game(runtime)&&!state.replay){for(int i=0;i<6;i++)if(pressed(VK_F1+i))toggle_cheat(runtime,i);if(pressed(VK_F7))state.everlasting_bgm=!state.everlasting_bgm;if(pressed('U'))toggle_cheat(runtime,6);}if(pressed(VK_ESCAPE)&&advanced_open)advanced_open=false;publish_menu(menu_open);}
-bool captures_game_input(){return advanced_open||practice_was_open;}
+bool captures_game_input(){return MobileThprac::captures_advanced(advanced_open)||practice_was_open;}
 bool captures_pointer(float x,float y){
  if(!initialized)return false;if(captures_game_input())return true;
- if(!move_hints)return false;if(selected_hint!=-1&&mouse_down)return true;
  if(auto* r=touhou::sdl::current();r&&r->flip_present_y)y=480-y;
+ if(ImGui::IsPopupOpen(nullptr,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel))return true;
+ for(auto* window:ImGui::GetCurrentContext()->Windows)if(window->Active&&!window->Hidden&&!(window->Flags&ImGuiWindowFlags_NoMouseInputs)&&window->OuterRectClipped.Contains({x,y}))return true;
+ if(!move_hints)return false;if(selected_hint!=-1&&mouse_down)return true;
  auto* app=static_cast<Application*>(ImGui::GetIO().UserData);if(!app)return false;
  for(int i=0;i<10;++i)if(auto* vm=hint_vm(*app,i);vm&&std::abs(x-vm->position.x)<=8&&std::abs(y-vm->position.y)<=8)return true;
  return false;
