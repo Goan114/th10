@@ -78,7 +78,7 @@ void cancel(){if(auto* world=touch_world()){world->motion.touch_cancel(world->st
 #endif
 }
 void key(InputSnapshot& s,u32 scan,u32 vk){s.scan_keys[scan]=128;s.virtual_keys[vk]=128;if(vk>=160&&vk<=165)s.virtual_keys[16+(vk-160)/2]=128;}
-void sync_touch_context(const touhou::input::TouchState& state){const int previous=gestures.current_context();if(previous!=state.context&&(previous==1||previous==2))if(auto* world=touch_world())world->motion.touch_cancel(world->state.game.stage);}
+void sync_touch_context(const touhou::input::TouchState& state){const int previous=gestures.current_context();if(previous!=state.context&&(previous==1||previous==2)&&state.context!=1&&state.context!=2)if(auto* world=touch_world())world->motion.touch_cancel(world->state.game.stage);}
 void touch(int type,int id,float x,float y){
 #ifdef TH_ENABLE_THPRAC
     if(type==0&&ThpracUi::captures_pointer(x*640.f,y*480.f))practice_pointers.insert(id);
