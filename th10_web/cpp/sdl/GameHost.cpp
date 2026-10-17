@@ -47,6 +47,9 @@ struct Session {
     FileSystem* files=nullptr;Input* input=nullptr;GameState* state=nullptr;GraphicsDevice* device=nullptr;
     AnimationEngine* animation=nullptr;Fonts* fonts=nullptr;Audio* audio=nullptr;ScreenEffects* effects=nullptr;Application* app=nullptr;
     Rng random{},visual{};float rate=1;u32 quitting=0;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    std::uint64_t touch_frontier_epoch=0;
+#endif
     ~Session(){sdl_loop_stop();if(app)application_destroy(app);if(effects)effects_destroy(effects);if(audio)audio_destroy(audio);sdl_audio_shutdown();if(fonts)fonts_destroy(fonts);sdl_fonts_shutdown();if(animation)animation_engine_destroy(animation);if(device)graphics_destroy(device);if(state)game_state_destroy(state);if(input)input_destroy(input);if(files)files_destroy(files);sdl_shutdown();}
 };
 std::unique_ptr<Session> session;
@@ -66,11 +69,19 @@ struct Key {const char* code;const char* sdl;u32 scan,vk;bool hosted=false;SDL_S
 #include "../../../portable/input/KeyboardMap.inc"
 touhou::input::TouchController gestures;
 touhou::input::TouchState touch_state(){touhou::input::TouchState s;if(!session||!session->app)return s;u32 raw[8];application_touch_state(session->app,raw);float values[5];std::memcpy(values,raw+3,20);
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    const auto epoch=session->app->touch_input_frontier.Epoch();
+    if(session->touch_frontier_epoch!=epoch){
+        // A same-address Restart/seat change still retires the old anchor.
+        // Preserve launcher action serials; only sdl_game_open begins them.
+        gestures.cancel_transient();session->touch_frontier_epoch=epoch;
+    }
+#endif
     s.context=raw[0];s.instance=raw[1];s.ready=raw[2];s.x=values[0];s.y=values[1];s.fast=values[2];s.slow=values[3];s.min_x=-184;s.max_x=184;s.min_y=32;s.max_y=432;return s;}
 World* touch_world(){return session&&session->app?session->app->world:nullptr;}
 void cancel(){if(auto* world=touch_world()){world->motion.touch_cancel(world->state.game.stage);world->motion.target(0,0,0);}gestures.cancel_transient();}
 void key(InputSnapshot& s,u32 scan,u32 vk){s.scan_keys[scan]=128;s.virtual_keys[vk]=128;if(vk>=160&&vk<=165)s.virtual_keys[16+(vk-160)/2]=128;}
-void sync_touch_context(const touhou::input::TouchState& state){const int previous=gestures.current_context();if(previous!=state.context&&(previous==1||previous==2))if(auto* world=touch_world())world->motion.touch_cancel(world->state.game.stage);}
+void sync_touch_context(const touhou::input::TouchState& state){const int previous=gestures.current_context();if(previous!=state.context&&(previous==1||previous==2)&&state.context!=1&&state.context!=2)if(auto* world=touch_world())world->motion.touch_cancel(world->state.game.stage);}
 void touch(int type,int id,float x,float y){const auto state=touch_state();sync_touch_context(state);if((state.context==1||state.context==2))if(auto* world=touch_world())world->motion.touch_event(world->state.game.stage,type,id,x,y);gestures.pointer(type,id,x,y,SDL_GetTicks(),state,session&&session->input&&session->input->snapshot.virtual_keys[16]);}
 
 }
@@ -91,7 +102,17 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
     for(const auto& k:keyboard_map)if(k.hosted||(physical&&k.native!=SDL_SCANCODE_UNKNOWN&&physical[k.native]))key(snapshot,k.scan,k.vk);
     const int keyboardDpad=th10_keyboard_gamepad_dpad();if(keyboardDpad&1)key(snapshot,0xc8,38);if(keyboardDpad&2)key(snapshot,0xd0,40);if(keyboardDpad&4)key(snapshot,0xcb,37);if(keyboardDpad&8)key(snapshot,0xcd,39);
     poll_controllers(snapshot);
-    const auto state=touch_state();sync_touch_context(state);const auto sample=gestures.sample(state,SDL_GetTicks(),snapshot.virtual_keys[16],snapshot.virtual_keys[37]||snapshot.virtual_keys[38]||snapshot.virtual_keys[39]||snapshot.virtual_keys[40]);
+    const auto state=touch_state();sync_touch_context(state);
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    const auto& runtime=app->state.netplay_runtime;
+    const bool sample_touch=!app->multiplayer_active()||runtime.Playback()||runtime.Spectator()||
+        (app->state.pending_screen==app->value.screen&&runtime.CanCapture()&&
+         !runtime.HasLocalCapture(runtime.NextFrame()));
+    // Retrying an already-captured frame must not consume another Bomb/Esc
+    // pulse or overwrite a pending physical sample during historical recovery.
+    if(sample_touch){
+#endif
+    const auto sample=gestures.sample(state,SDL_GetTicks(),snapshot.virtual_keys[16],snapshot.virtual_keys[37]||snapshot.virtual_keys[38]||snapshot.virtual_keys[39]||snapshot.virtual_keys[40]);
     for(const auto& k:keyboard_map)if(sample.keys[k.vk]||(k.vk>=160&&k.vk<=165&&sample.keys[16+(k.vk-160)/2]))key(snapshot,k.scan,k.vk);
 #ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
     auto& analog=app->state.multiplayer_local_analog;analog={};
@@ -113,6 +134,9 @@ __attribute__((export_name("sdl_native_input"))) void sdl_native_input(Applicati
     }else if(app->world)app->world->motion.target(sample.motion,sample.x,sample.y);
 #else
     if(app->world)app->world->motion.target(sample.motion,sample.x,sample.y);
+#endif
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    }
 #endif
 #ifdef TH_ENABLE_THPRAC
     ThpracUi::update_input(*app);

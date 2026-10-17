@@ -10,8 +10,81 @@
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+#include "../multiplayer/RecoveryBudget.hpp"
+#include "../multiplayer/LiveMotionObservation.hpp"
+#include "../multiplayer/CallbackWorkTiming.hpp"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#else
+#include <chrono>
+#endif
+#endif
 namespace th10::browser {
 namespace {
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+using TailPresentation=host::NetworkTailPresentation;
+namespace work_timing=multiplayer::callback_work_timing;
+using AuthoredIdentity=Application::AuthoredPresentationBoundary::Identity;
+AuthoredIdentity authored_identity(const Application& app){
+    const auto* world=app.world;
+    const auto* session=world?world->actors.session:nullptr;
+    const auto* current=world?world->backgrounds.current:nullptr;
+    const auto* previous=world?world->backgrounds.previous:nullptr;
+    const auto address=[](const void* pointer){return reinterpret_cast<std::uintptr_t>(pointer);};
+    return {{address(world),address(session),address(current),address(previous),
+             address(current?current->file:nullptr),address(previous?previous->file:nullptr),
+             address(current?current->animation_file:nullptr),address(previous?previous->animation_file:nullptr),
+             address(app.state.current_stage)},
+            app.state.netplay_runtime.Generation(),session?session->stage_identifier:0u,app.state.game.stage};
+}
+bool same_authored_identity(const AuthoredIdentity& before,const AuthoredIdentity& after){
+    for(unsigned i=0;i<9;++i)if(before.owners[i]!=after.owners[i])return false;
+    return before.generation==after.generation&&before.stage_identifier==after.stage_identifier&&
+           before.stage_number==after.stage_number;
+}
+u32 authored_boundary_flags(const Application& app){
+    u32 flags=0;
+    const auto& runtime=app.state.netplay_runtime;
+    const auto* world=app.world;
+    if(app.stopped||!app.initialized||app.error||!world||
+       (world&&(world->error||world->backgrounds.error)))flags|=TailPresentation::UnavailableApplication;
+    if(!app.multiplayer_active()||!runtime.NetworkEnabled()||!runtime.CanStart()||
+       !runtime.InitialInputsReady()||runtime.Mode()!=Netplay::AdonisMode::Rollback||
+       runtime.Playback()||runtime.Spectator()||runtime.Retired()||app.multiplayer_replay_scope)
+        flags|=TailPresentation::NotLiveForward;
+    if(app.value.screen!=7||app.state.pending_screen!=7||app.value.frame_gate||
+       app.value.loading_state||app.value.resource_loader.running||app.loading_pause||
+       app.multiplayer_generation_pending||app.state.quitting||
+       (world&&(world->loading||world->resource_drawing>=0||world->resource_updating>=0)))
+        flags|=TailPresentation::LoadingOrTransition;
+    if(world&&world->actors.session){
+        const auto& session=*world->actors.session;
+        if(session.session_flags&0x74u)flags|=TailPresentation::FrozenOrPaused;
+        if((session.session_flags&0x808u)||session.elapsed.current<=0)
+            flags|=TailPresentation::LoadingOrTransition;
+        if(world->actors.results&&world->actors.results->state!=0)flags|=TailPresentation::FrozenOrPaused;
+    }
+    if(!(app.engine.speed>0.f))flags|=TailPresentation::FrozenOrPaused;
+    if(!world||TailPresentation::StageHasAuthoredBoundary(world->backgrounds.current))
+        flags|=TailPresentation::CurrentStageBoundary;
+    if(world&&world->backgrounds.previous&&TailPresentation::StageHasAuthoredBoundary(world->backgrounds.previous))
+        flags|=TailPresentation::PreviousStageBoundary;
+    const auto& capture=*reinterpret_cast<const AnmCapture*>(app.engine.manager.header);
+    if(capture.reserved_000>=0||capture.target_file>=0)flags|=TailPresentation::CaptureRequested;
+    if((app.input.player_profiles[0].input.raw_pressed&0x800u)||app.writer_pending)
+        flags|=TailPresentation::ScreenshotRequested;
+    if(app.reset_frames)flags|=TailPresentation::DeviceReset;
+    return flags;
+}
+double multiplayer_work_now(){
+#ifdef __EMSCRIPTEN__
+    return emscripten_get_now();
+#else
+    return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
+}
+#endif
 #ifdef TH_SDL3
 extern "C" double monotonic();
 #else
@@ -57,18 +130,91 @@ void Application::advance_loading(){
     if((startup&&startup->error)||(title&&title->error)||(world&&world->error)||(credits&&credits->error))error=-3;
 }
 #ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+void Application::multiplayer_reset_authored_boundary(){
+    auto& boundary=multiplayer_authored_boundary;
+    boundary.flags=TailPresentation::Unobserved;
+    boundary.frame=Netplay::INVALID_FRAME;
+    boundary.tracking=state.netplay_runtime.NetworkTailPresentationEnabled();
+    if(!boundary.tracking)return;
+    // Reject a transition performed by Update even if the new world looks
+    // stable by the time Draw begins. No saved owner is dereferenced later.
+    boundary.identity=authored_identity(*this);
+    boundary.flags|=authored_boundary_flags(*this);
+}
+void Application::multiplayer_begin_authored_boundary(){
+    auto& boundary=multiplayer_authored_boundary;
+    if(!boundary.tracking)return;
+    if(!(boundary.flags&TailPresentation::NoAuthoredDraw))boundary.flags|=TailPresentation::RepeatedAuthoredDraw;
+    boundary.flags&=~u32(TailPresentation::NoAuthoredDraw);
+    boundary.flags|=authored_boundary_flags(*this);
+    if(!same_authored_identity(boundary.identity,authored_identity(*this)))
+        boundary.flags|=TailPresentation::SceneIdentityChanged;
+    if(!multiplayer_frame_open||multiplayer_pending_frame==Netplay::INVALID_FRAME||
+       multiplayer_waiting||state.netplay_runtime.Correcting()||!world||world->rollback_resimulating||
+       high_refresh::render_only||engine.suppress_rollback_sprite_output||
+       engine.netplay_frame!=multiplayer_pending_frame)
+        boundary.flags|=TailPresentation::NotLiveForward;
+    boundary.frame=multiplayer_pending_frame;
+}
+void Application::multiplayer_observe_authored_boundary(bool submitted){
+    auto& boundary=multiplayer_authored_boundary;
+    if(!boundary.tracking||(boundary.flags&TailPresentation::NoAuthoredDraw))return;
+    boundary.flags|=authored_boundary_flags(*this);
+    if(!same_authored_identity(boundary.identity,authored_identity(*this)))
+        boundary.flags|=TailPresentation::SceneIdentityChanged;
+    if(submitted&&boundary.frame!=Netplay::INVALID_FRAME&&multiplayer_forward_advanced&&
+       !multiplayer_frame_open&&!state.netplay_runtime.Correcting()&&world&&!world->rollback_resimulating&&
+       !engine.rollback_state&&state.netplay_runtime.LastSimulatedFrame()==boundary.frame)
+        boundary.flags&=~u32(TailPresentation::IncompleteAuthoredFrame);
+}
 bool Application::multiplayer_active()const{
     const auto& session=state.multiplayer_session;
     return session.sessionId&&session.started&&world&&!world->loading&&world->actors.session&&
            state.netplay_runtime.Configured();
 }
 
-bool Application::multiplayer_pump_network(){
+multiplayer::RemotePlayerPresentation::Progress Application::remote_player_presentation_progress()const{
+    multiplayer::RemotePlayerPresentation::Progress progress;
+    const auto& runtime=state.netplay_runtime;
+    progress.correcting=runtime.Correcting();
+    progress.frame_open=multiplayer_frame_open;
+    progress.resimulating=world&&world->rollback_resimulating;
+    progress.usable=!stopped&&!error&&multiplayer_active()&&!multiplayer_replay_scope&&
+        !runtime.Playback()&&!runtime.Spectator()&&!runtime.Retired()&&
+        state.pending_screen==value.screen&&!world->error&&
+        !(world->actors.session->session_flags&0x74u);
+    return progress;
+}
+void Application::freeze_remote_player_presentation(){
+    if(!world)return;
+    world->remote_player_presentation.Freeze(world->remote_player_presentation_identity(),
+        remote_player_presentation_progress(),state.netplay_runtime.LastSimulatedFrame(),
+        multiplayer_rollbacks,[&](multiplayer::RemotePlayerPresentation::Snapshots& output){
+            world->read_remote_player_presentation(output);
+        });
+}
+void Application::publish_remote_player_presentation(){
+    if(!world)return;
+    const auto progress=remote_player_presentation_progress();
+    if(progress.Complete())world->remote_player_presentation_revision=multiplayer_rollbacks;
+    world->remote_player_presentation.Publish(world->remote_player_presentation_identity(),
+        progress,state.netplay_runtime.LastSimulatedFrame(),multiplayer_rollbacks,
+        multiplayer_forward_advanced,[&](multiplayer::RemotePlayerPresentation::Snapshots& output){
+            world->read_remote_player_presentation(output);
+        });
+}
+void Application::invalidate_remote_player_presentation(){
+    multiplayer_remote_endpoint_presented=true;
+    if(world){world->remote_player_presentation.Invalidate();world->remote_player_presentation_revision=0;}
+}
+
+bool Application::multiplayer_pump_network(bool capture_follows){
     // rAF keeps pumping even while the shell is suspended after a fatal
     // error. Preserve the first failure instead of replacing it with a later
     // confirmed-input timeout from the now-stopped simulation.
     if(error)return false;
-    if(state.netplay_runtime.PumpNetwork(multiplayer_active()))return true;
+    if(state.netplay_runtime.PumpNetwork(multiplayer_active(),
+        capture_follows&&state.pending_screen==value.screen))return true;
     const auto& runtime=state.netplay_runtime;
     const auto& channel=runtime.Channel();
     const auto frame=[](u32 value)->i32{
@@ -86,11 +232,12 @@ bool Application::multiplayer_pump_network(){
         frame(channel.PeerFrame(0)),frame(channel.PeerFrame(1)),frame(channel.PeerFrame(2)),
         frame(channel.LatestCapture()),channel.PacketsSent(),channel.PacketsReceived(),
         channel.RepairsSent(),runtime.Transport().BufferedAmount(),value.screen,state.pending_screen);
-    error=-5;return false;
+    error=-5;invalidate_remote_player_presentation();return false;
 }
 
 void Application::multiplayer_fail(const char* reason){
     if(error)return;
+    invalidate_remote_player_presentation();
     const auto& runtime=state.netplay_runtime;
     std::snprintf(multiplayer_failure_detail,sizeof(multiplayer_failure_detail),
         "%s (frame %u, confirmed %u, rollback %u)",reason,runtime.NextFrame(),
@@ -131,9 +278,9 @@ i32 Application::multiplayer_update(){
     // Send the once-latched local input BEFORE expensive reconciliation so
     // the peer need not predict our CPU work as additional network latency.
     // Replay, spectator and transition paths never sample physical controls.
-    if(!runtime.Playback()&&!runtime.Spectator()&&state.pending_screen==value.screen&&
-       (runtime.Setup().version<4||!runtime.HasRollbackRequest())&&
+    if(runtime.CanCapture()&&state.pending_screen==value.screen&&
        !capture_local(runtime.NextFrame()))return -1;
+    if(!runtime.FlushNetworkInputs()){multiplayer_fail("Flush captured input tail");return -1;}
     if(!runtime.InitialInputsReady()){multiplayer_waiting=true;return 1;}
 
     if(runtime.HasRollbackRequest()){
@@ -141,46 +288,80 @@ i32 Application::multiplayer_update(){
         const auto rollbackFrame=runtime.RollbackFrame();
         const auto last=runtime.LastSimulatedFrame();
         if(last!=Netplay::INVALID_FRAME&&rollbackFrame<=last){
+            const auto end=runtime.PredictionFrontier();
             std::uint32_t replayFrom=rollbackFrame;
+            // Freeze the complete endpoint before the first restore. A nested
+            // request during chunked correction must not publish old history.
+            if(!runtime.Correcting()){
+                publish_touch_input_frontier();freeze_remote_player_presentation();
+            }
             if(!rollback->RestoreTo(rollbackFrame,&replayFrom)){multiplayer_fail("Restore checkpoint");return -1;}
             if(!runtime.RewindSimulationTo(replayFrom)){multiplayer_fail("Rewind input history");return -1;}
             if(!world->audio_events.DiscardFrom(replayFrom)){multiplayer_fail("Rewind audio history");return -1;}
+            runtime.BeginCorrection(end);
+            multiplayer_corrected_presentation_pending=false;
             ++multiplayer_rollbacks;
-            world->rollback_resimulating=true;
-            for(std::uint32_t frame=replayFrom;frame<=last;++frame){
-                // A corrected input can reach a destructive lifecycle boundary
-                // earlier than the abandoned prediction. Retire that future,
-                // preserve its captured inputs and let the confirmed fence
-                // below own graph destruction; never run it inside a journal.
-                if(state.pending_screen!=value.screen)break;
-                const auto decision=runtime.Prepare(frame);
-                const bool replayActive=state.multiplayer_replay.Recording()||
-                                        state.multiplayer_replay.Playing();
-                if(!decision.canAdvance||(replayActive&&
-                   !state.multiplayer_replay.Stamp(frame,u32(state.game.stage)))||
-                   !world->begin_netplay_frame(frame)){
-                    world->rollback_resimulating=false;multiplayer_fail("Begin resimulated frame");return -1;
-                }
-                world->capture_replay_checkpoint_precommit(state.multiplayer_replay.Base()+frame);
-                if(!multiplayer::InputLanes::Commit(state.input_lanes,decision.inputs.data(),
-                                                    state.multiplayer_session.playerCount)){
-                    world->clear_replay_checkpoint_precommit();
-                    world->rollback_resimulating=false;multiplayer_fail("Commit resimulated input");return -1;
-                }
-                const i32 result=engine.update_all();
-                world->clear_replay_checkpoint_precommit();
-                if(result==0||result==-1||!multiplayer_resimulate_draw()||
-                   !world->end_netplay_frame()||!runtime.MarkSimulated(frame,decision)){
-                    world->rollback_resimulating=false;multiplayer_fail("Finish resimulated frame");return -1;
-                }
-                ++multiplayer_resimulated_frames;
-            }
-            world->rollback_resimulating=false;
         }else runtime.ClearRollbackRequest();
     }
 
-    if(!world->commit_audio()){multiplayer_fail("Commit audio before tick");return -1;}
-    if(!world->commit_replay()){multiplayer_fail("Commit Replay before tick");return -1;}
+    if(runtime.Correcting()){
+        // Live rAF may return only between complete historical transactions.
+        // The synchronous stopped-loop oracle deliberately keeps its original
+        // one-completed-tick contract and uses this same recovery body.
+        unsigned replayed=0;
+        while(runtime.NextFrame()<runtime.CorrectionEnd()){
+            // A corrected lifecycle boundary retires the abandoned future.
+            // Captured input remains owned by the core; graph destruction is
+            // still performed by the reconciled/confirmed fence below.
+            if(state.pending_screen!=value.screen)break;
+            if(multiplayer_callback_started>=0&&replayed&&
+               !multiplayer::RecoveryBudget::CanStartTick(replayed,
+                   runtime.CorrectionEnd()-runtime.NextFrame(),
+                   static_cast<std::uint64_t>(std::max(0.,multiplayer_work_now()-
+                       multiplayer_callback_started)*1'000'000.))){
+                ++multiplayer_recovery_yields;
+                multiplayer_waiting=true;return 1;
+            }
+            const auto frame=runtime.NextFrame();
+            const auto decision=runtime.Prepare(frame);
+            const bool replayActive=state.multiplayer_replay.Recording()||
+                                    state.multiplayer_replay.Playing();
+            world->rollback_resimulating=true;
+            if(!decision.canAdvance||(replayActive&&
+               !state.multiplayer_replay.Stamp(frame,u32(state.game.stage)))||
+               !world->begin_netplay_frame(frame)){
+                world->rollback_resimulating=false;multiplayer_fail("Begin resimulated frame");return -1;
+            }
+            world->capture_replay_checkpoint_precommit(state.multiplayer_replay.Base()+frame);
+            if(!multiplayer::InputLanes::Commit(state.input_lanes,decision.inputs.data(),
+                                                state.multiplayer_session.playerCount)){
+                world->clear_replay_checkpoint_precommit();
+                world->rollback_resimulating=false;multiplayer_fail("Commit resimulated input");return -1;
+            }
+            const i32 result=[&]{
+                work_timing::PhaseScope work_phase(work_timing::state,work_timing::Phase::HistoryUpdate);
+                return engine.update_all();
+            }();
+            world->clear_replay_checkpoint_precommit();
+            if(result==0||result==-1||!multiplayer_resimulate_draw()||
+               !world->end_netplay_frame()||!runtime.MarkSimulated(frame,decision)){
+                world->rollback_resimulating=false;multiplayer_fail("Finish resimulated frame");return -1;
+            }
+            world->rollback_resimulating=false;
+            ++multiplayer_resimulated_frames;++replayed;
+        }
+        runtime.EndCorrection();
+        multiplayer_corrected_presentation_pending=true;
+        // A fully recovered callback may attempt its one already-due forward
+        // tick even after history used the budget. Do not permanently spend
+        // every callback repairing old work without producing a new endpoint.
+    }
+
+    {
+        work_timing::PhaseScope work_phase(work_timing::state,work_timing::Phase::ConfirmedCommit);
+        if(!world->commit_audio()){multiplayer_fail("Commit audio before tick");return -1;}
+        if(!world->commit_replay()){multiplayer_fail("Commit Replay before tick");return -1;}
+    }
     // Reconcile first: late input can cancel a predicted transition. Clearing
     // the journal as soon as confirmation arrives loses that required restore.
     // Whole resource lifetimes only cross a fully reconciled, confirmed fence.
@@ -238,7 +419,10 @@ i32 Application::multiplayer_update(){
         world->clear_replay_checkpoint_precommit();
         multiplayer_fail("Commit forward input");return -1;
     }
-    const i32 result=engine.update_all();
+    const i32 result=[&]{
+        work_timing::PhaseScope work_phase(work_timing::state,work_timing::Phase::ForwardUpdate);
+        return engine.update_all();
+    }();
     world->clear_replay_checkpoint_precommit();
     if(result==0||result==-1){world->end_netplay_frame();multiplayer_fail("Update forward frame");return -1;}
     multiplayer_pending_decision=decision;
@@ -260,7 +444,10 @@ bool Application::multiplayer_resimulate_draw(){
     // Captures are serviced by Present, not historical Draw. Keep full
     // output nevertheless whenever an authored pixel capture is pending.
     engine.suppress_rollback_sprite_output=request.reserved_000<0&&request.target_file<0;
-    engine.draw_all();
+    {
+        work_timing::PhaseScope work_phase(work_timing::state,work_timing::Phase::HistorySemanticDraw);
+        engine.draw_all();
+    }
     engine.flush();
     engine.suppress_rollback_sprite_output=false;
     engine.device.texture(nullptr);
@@ -293,8 +480,11 @@ bool Application::multiplayer_finalize_frame(){
     if(!state.netplay_runtime.MarkSimulated(frame,decision)){
         multiplayer_fail("Finalize rollback frame: input history rejected frame");return false;
     }
+    multiplayer_forward_advanced=true;
+    multiplayer_corrected_presentation_pending=false;
     if(world->error||world->backgrounds.error){multiplayer_fail("World or background state");return false;}
     if(state.netplay_runtime.Playback()&&!state.multiplayer_replay.Played(frame)){error=-6;return false;}
+    work_timing::PhaseScope work_phase(work_timing::state,work_timing::Phase::ConfirmedCommit);
     if(!world->commit_audio()){multiplayer_fail("Commit audio after tick");return false;}
     if(!world->commit_replay()){multiplayer_fail("Commit Replay after tick");return false;}
     const auto confirmed=state.netplay_runtime.ConfirmedThroughAllRemotes();
@@ -308,9 +498,23 @@ bool Application::multiplayer_finalize_frame(){
     return true;
 }
 #endif
-i32 Application::step(bool scheduled_tick){
-    if(stopped)return error?2:1;if(!initialized&&!initialize())return 2;
+i32 Application::step(bool scheduled_tick,double callback_started){
 #ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    // Even stopped, failed, skipped and input-blocked steps revoke the last
+    // step's eligibility. Historical Draw never calls the begin hook.
+    multiplayer_reset_authored_boundary();
+#endif
+    if(stopped){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+        invalidate_remote_player_presentation();
+#endif
+        return error?2:1;
+    }
+    if(!initialized&&!initialize())return 2;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    multiplayer_remote_endpoint_presented=true;
+    multiplayer_callback_started=callback_started;
+    multiplayer_forward_advanced=false;
     if(multiplayer_replay_scope){
         const bool escape=input.snapshot.virtual_keys[27]!=0;
         if(escape&&!multiplayer_replay_escape&&world&&world->actors.session){
@@ -322,12 +526,23 @@ i32 Application::step(bool scheduled_tick){
         }
         multiplayer_replay_escape=escape;
     }
-    if(!multiplayer_pump_network()){stopped=true;return 2;}
+    // A live display callback already pumped before its clock/input work.
+    // A second pump here would send the deferred old tail before capture.
+    if(callback_started<0&&!multiplayer_pump_network()){stopped=true;return 2;}
 #endif
     advance_loading();if(error){stopped=true;return 2;}
 #ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
     auto& session=state.multiplayer_session;
+    // Fresh multiplayer launches are configured before their first tick.
+    // Once both opening draws exist, the real-time title wait may continue
+    // loading/pumping but must not grow ANM/Common state at each local poll.
+    // Keep this after advance_loading(): that owner completes the wait.
+    if(session.configured&&!session.started&&title&&title->loading&&
+       startup_view&&startup_view->elapsed>=2)return 0;
     if(multiplayer_generation_pending&&world&&!world->loading&&world->actors.session){
+        if(multiplayer::live_motion::enabled)multiplayer::live_motion::Invalidate(this);
+        touch_input_frontier.Invalidate();
+        invalidate_remote_player_presentation();
         if(!state.netplay_runtime.BeginNextRun(session,engine.script_random.seed)){multiplayer_fail("Begin session generation");return 2;}
         if(!state.multiplayer_replay.NextGeneration(state.netplay_runtime.Generation())){error=-6;return 2;}
         state.multiplayer_cheat_movement_used=false;
@@ -385,12 +600,28 @@ i32 Application::step(bool scheduled_tick){
     // demo after idling at its native title/Replay menu.
     if(!state.multiplayer_session.configured)state.inactive_frames=0;
 #endif
-    if(error){stopped=true;return 2;}
+    if(error){stopped=true;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+        invalidate_remote_player_presentation();
+#endif
+        return 2;
+    }
     if(writer_pending){writer_pending=false;Screenshot{screenshots}.write();}
-    if(result){stopped=true;save();}return result;
+    if(result){stopped=true;save();}
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    // A recovered endpoint is publishable even when no additional forward
+    // tick could run. Correcting/open-frame guards reject partial history.
+    publish_touch_input_frontier();
+    publish_remote_player_presentation();
+#endif
+    return result;
 }
 bool Application::presentation_draw(float alpha,bool interpolate,bool world_interpolate){
     if(stopped||!initialized||error)return false;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    if(state.netplay_runtime.Correcting()||multiplayer_frame_open||
+       (world&&world->rollback_resimulating))return false;
+#endif
     const auto saved_world=engine.world,saved_ui=engine.ui;auto* saved_active=engine.active;
     const auto saved_value_world=value.world_camera,saved_value_ui=value.ui_camera;auto* saved_value_active=value.active_camera;
     const u32 saved_screen_space=engine.screen_space,saved_fog=engine.fog_enabled,saved_graphics=graphics_state;
@@ -401,12 +632,22 @@ bool Application::presentation_draw(float alpha,bool interpolate,bool world_inte
     engine.flush();value.active_camera=&value.ui_camera;configure_camera(value.ui_camera,true);engine.device.viewport(value.active_camera->viewport);value.screen_space=1;
     bool presented=false;
     if(engine.device.begin_scene()>=0){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+        if(multiplayer::live_motion::enabled)
+            multiplayer::live_motion::BeginDraw(*this,multiplayer::live_motion::DrawKind::Presentation);
+#endif
         auto& animations=*manager;animations.batch_quads=0;animations.vertex_write=animations.batch_start=animations.vertex_buffer;graphics_state=255;
         u32 fog=saved_fog;ApplicationLoop::disable_fog(value,fog,loop);engine.draw_all();engine.flush();engine.device.texture(nullptr);engine.device.end_scene();
 #ifdef TH_ENABLE_THPRAC
         if(auto* renderer=touhou::sdl::current())ThpracUi::render(*this,*renderer);
 #endif
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+        if(multiplayer::live_motion::enabled)multiplayer::live_motion::SealDraw(*this);
+#endif
         presented=engine.device.present_frame()>=0;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+        if(presented)multiplayer_remote_endpoint_presented=!interpolate||!world_interpolate||alpha>=1.f;
+#endif
     }
     engine.world=saved_world;engine.ui=saved_ui;engine.active=saved_active;engine.screen_space=saved_screen_space;engine.fog_enabled=saved_fog;graphics_state=saved_graphics;
     manager->reserved_050=saved_reserved;manager->submitted_draws=saved_submitted;manager->started_scripts=saved_started;manager->flushed_batches=saved_flushed;
@@ -414,6 +655,13 @@ bool Application::presentation_draw(float alpha,bool interpolate,bool world_inte
     value.world_camera=saved_value_world;value.ui_camera=saved_value_ui;value.active_camera=saved_value_active;presentation_audit::end_frame();high_refresh::end();return presented;
 }
 void Application::presentation_frame(){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    // Called by the host only after a real committed Present. Never consume
+    // merely because an authored Draw queued an endpoint in deferred mode.
+    if(multiplayer_remote_endpoint_presented&&world&&remote_player_presentation_progress().Complete()&&
+       world->remote_player_presentation_revision==multiplayer_rollbacks)
+        world->remote_player_presentation.Consume(state.netplay_runtime.LastSimulatedFrame(),multiplayer_rollbacks);
+#endif
     const double now=time().to_double();if(!presentation_origin){presentation_origin=now;presentation_frames=0;}++presentation_frames;const double elapsed=now-presentation_origin;if(elapsed<.5)return;
     presentation_fps=float(double(presentation_frames)/elapsed);presentation_origin=now;presentation_frames=0;
 }
@@ -433,6 +681,13 @@ void Application::save(){
     config.save("th10.cfg",state.configuration);if(startup&&startup->scores)startup->scores->save();
 }
 void Application::shutdown(){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    if(multiplayer::live_motion::enabled){
+        multiplayer::live_motion::Stop(this);multiplayer::live_motion::Invalidate(this);
+    }
+    touch_input_frontier.Invalidate();
+    invalidate_remote_player_presentation();
+#endif
     if(writer_pending){writer_pending=false;Screenshot{screenshots}.write();}
     // Wrappers reference Startup's common resources and score store. Release
     // every dependent owner before the store, including retained replay pools.
@@ -477,11 +732,29 @@ void AppScreens::create_game(i32 mode){auto& a=owner;if(!a.ensure_world())return
         p.active=p.enabled&&p.run.mode==1&&(p.replay||(a.state.game.flags&0x10)!=0);
     }
 #endif
-    a.world->new_game=a.value.new_game;if(!a.world->start(mode))a.error=-1;a.sync_views();}
-void AppScreens::destroy_game(GameSession*){if(owner.world)owner.world->stop_session();owner.sync_views();}
+    a.world->new_game=a.value.new_game;
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    if(multiplayer::live_motion::enabled)multiplayer::live_motion::Invalidate(&a);
+    a.touch_input_frontier.Invalidate();
+    a.invalidate_remote_player_presentation();
+#endif
+    if(!a.world->start(mode))a.error=-1;a.sync_views();}
+void AppScreens::destroy_game(GameSession*){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    if(multiplayer::live_motion::enabled)multiplayer::live_motion::Invalidate(&owner);
+    owner.touch_input_frontier.Invalidate();
+    owner.invalidate_remote_player_presentation();
+#endif
+    if(owner.world)owner.world->stop_session();owner.sync_views();}
 void AppScreens::create_ending(){auto& a=owner;if(!a.ensure_world())return;a.credits=create<Credits>(*a.world,a.captures);if(!a.credits||!a.credits->initialize()){dispose(a.credits);a.error=-1;}a.sync_views();}
 void AppScreens::destroy_ending(Ending*){dispose(owner.credits);owner.sync_views();}
-void AppScreens::destroy_startup(StartupScreen*){dispose(owner.credits);dispose(owner.world);dispose(owner.startup);owner.sync_views();}
+void AppScreens::destroy_startup(StartupScreen*){
+#ifdef TH_ENABLE_MULTIPLAYER_GAMEPLAY
+    if(multiplayer::live_motion::enabled)multiplayer::live_motion::Invalidate(&owner);
+    owner.touch_input_frontier.Invalidate();
+    owner.invalidate_remote_player_presentation();
+#endif
+    dispose(owner.credits);dispose(owner.world);dispose(owner.startup);owner.sync_views();}
 void AppScreens::destroy_replay(Replay* replay){if(owner.world)owner.world->release_replay(replay);else __builtin_trap();owner.sync_views();}
 u32 AppScreens::create_loading_animation(AnmFile& file,i32 script){auto& e=owner.engine;return e.manager.create(file,script,15,AnimationPlacement::WorldBack,e,e);}
 // Screen resource owners use typed cooperative loading tasks; no raw callback
